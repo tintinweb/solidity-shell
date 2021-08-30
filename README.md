@@ -23,7 +23,14 @@ An interactive Solidity shell with lightweight session recording.
 352
 ```
 
-**Note**: The sessions can be saved and restored using the `.session` command. The previous session can always be loaded via `.session load previous` (not safe when running concurrent shells).
+### Hints
+
+* **Note**: Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
+* **Note**: `.reset` completely removes all statements. `.undo` removes the last statement.
+* **Note**: see what's been generated under the hood? call `.dump`.
+* **Note**: settings are saved on exit (not safe when running concurrent shells). call `config set <key> <value>` to change settings like ganache port, ganache autostart, etc.
+* **Note**: solidity version is currently fixed to the `solc` package that comes with the shell. If there's interest we might change that to allow remote compiler versions.
+
 
 ## Examples 
 
