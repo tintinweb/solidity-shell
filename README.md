@@ -23,10 +23,6 @@ An interactive Solidity shell with lightweight session recording.
 352
  »  $_
 352
- »  msg.sender
-0x70e9B09abd6A13D2F5083CD5814076b77427199F
- »  address(uint160(address(msg.sender)))
-0x70e9B09abd6A13D2F5083CD5814076b77427199F
 ```
 
 ### Hints
@@ -48,20 +44,28 @@ An interactive Solidity shell with lightweight session recording.
 #### Sample Usage
 
 ```shell
+
+🚀 Entering interactive Solidity shell. .help and .exit are your friends.
+
+ »  ℹ️  ganache-mgr: starting temp. ganache instance ...
+ »
  »  .help
 
 📚 Help:
    -----
 
-  General:
+ $_ is a placeholder holding the most recent evaluation result.
+
+
+ General:
     .help                                ... this help :)
     .exit                                ... exit the shell
 
-  Settings:
+ Settings:
     .config                              ... show settings
             set <key> <value>            ... set setting
             unset <key>                  ... unset setting
-  Session:
+ Session:
     .session                             ... list sessions
             load <id>                    ... load session
             save <id>                    ... save session
@@ -69,15 +73,26 @@ An interactive Solidity shell with lightweight session recording.
     .undo                                ... undo last command
     .reset                               ... reset cmd history. start from scratch.
 
-  Debug:
-    .dump                                ... (debug) show template contract
+ Debug::
+    .proc                                ... show processes managed by solidity-shell (ganache)
+    .dump                                ... show template contract
+    .echo                                ... every shell needs an echo command
 
 
 cheers 🙌 
     @tintinweb 
-    ConsenSys Diligence @ https://diligence.consensys.net/
+    ConsenSys Diligence @ https://consensys.net/diligence/
+    https://github.com/tintinweb/solidity-shell/ 
 ```
 
+#### Transaction vars: `msg.sender` etc.
+
+```javascript
+ »  msg.sender
+0x70e9B09abd6A13D2F5083CD5814076b77427199F
+ »  address(uint160(address(msg.sender)))
+0x70e9B09abd6A13D2F5083CD5814076b77427199F
+```
 
 #### Contracts, Structs, Functions
 
@@ -106,7 +121,7 @@ multi> }
 
 #### Advanced usage
 
-```
+```javascript
  »  struct yolo {uint8 x; uint8 y;}
  »  .dump
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -133,9 +148,6 @@ contract MainContract {
 ```
 ____
 
-
-
-____
 
 ## Acknowledgements
 
