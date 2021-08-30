@@ -16,7 +16,7 @@ const { convert, multilineInput } = require('../src/utils');
 const CONFIG_HOME = path.join(os.homedir(), '.solidity-shell');
 const CONFIG_FILE = '.config';
 
-const REX_PLACEHOLDER = /\s(\$_)(\s|$)/ig /* LAST_KNOWN_RESULT placeholder */
+const REX_PLACEHOLDER = /(^|\s)(\$_)(\s|$)/ig /* LAST_KNOWN_RESULT placeholder */
 
 var LAST_KNOWN_RESULT = 'ss';
 var SESSION = 'previous.session';
@@ -100,7 +100,8 @@ vorpal
     .reset                               ... reset cmd history. start from scratch.
 
  ${c.bold('Debug:')}:
-    .dump                                ... (debug) show template contract
+    .proc                                ... show processes managed by solidity-shell (ganache)
+    .dump                                ... show template contract
     .echo                                ... every shell needs an echo command
 
 
@@ -135,6 +136,11 @@ cheers 🙌
                     }; break;
                 case '.dump': return cb(c.yellow(shell.template()));
                 case '.echo': return cb(c.bold(c.yellow(commandParts.slice(1).join(' '))))
+                case '.proc': 
+                    if(!shell.blockchain.proc){
+                        return cb();
+                    }
+                    return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
 
                 default:
                     console.error(`Unknown Command: '${command}'. Type ${c.bold('.help')} for a list of commands.`);

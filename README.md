@@ -21,6 +21,12 @@ An interactive Solidity shell with lightweight session recording.
  »  uint b = 200
  »  a + b + 2 + uint8(50)
 352
+ »  $_
+352
+ »  msg.sender
+0x70e9B09abd6A13D2F5083CD5814076b77427199F
+ »  address(uint160(address(msg.sender)))
+0x70e9B09abd6A13D2F5083CD5814076b77427199F
 ```
 
 ### Hints
