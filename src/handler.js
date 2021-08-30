@@ -22,7 +22,7 @@ const IGNORE_WARNINGS = [
 class SolidityStatement {
 
     constructor(rawCommand, scope) {
-        this.rawCommand = rawCommand ? rawCommand.trim() : "true";
+        this.rawCommand = rawCommand ? rawCommand.trim() : "";
         this.hasNoReturnValue = (rexAssign.test(this.rawCommand)) || (this.rawCommand.startsWith('delete')) || (this.rawCommand.startsWith('assembly')) || (this.rawCommand.startsWith('revert'))
 
         if (scope) {
@@ -46,14 +46,16 @@ class SolidityStatement {
             } else {
                 this.scope = "main";
                 this.rawCommand = this.fixStatement(this.rawCommand);
+                if(this.rawCommand===';'){
+                    this.hasNoReturnValue = true;
+                }
             }
         }
 
-        //
         if (this.hasNoReturnValue) {
             // expression
-            this.returnExpression = 'true;';
-            this.returnType = 'bool';
+            this.returnExpression = ';';
+            this.returnType = '';
         } else {
             // not an expression
             this.returnExpression = this.rawCommand;
@@ -67,6 +69,10 @@ class SolidityStatement {
 
     toString() {
         return this.rawCommand;
+    }
+
+    toList() {
+        return [this.rawCommand, this.scope]
     }
 }
 
@@ -95,7 +101,20 @@ class InteractiveSolidityShell {
         this.blockchain.connect()
     }
 
+    loadSession(stmts){
+        if(!stmts) {
+            this.session.statements = []
+        } else {
+            this.session.statements = stmts.map(s => new SolidityStatement(s[0], s[1]));
+        }
+    }
+
+    dumpSession(){
+        return this.session.statements.map(s => s.toList());
+    }
+
     setSetting(key, value){
+        if(key === 'installedSolidityVersion') return;
         this.settings[key] = value;
     }
 
@@ -120,7 +139,7 @@ class InteractiveSolidityShell {
         const contractState = this.session.statements.filter(stm => stm.scope === "contract");
         const mainStatements = this.session.statements.filter(stm => stm.scope === "main");
 
-        var lastStatement = this.session.statements[this.session.statements.length -1];
+        var lastStatement = this.session.statements[this.session.statements.length -1] || {}
         if(lastStatement.scope !== 'main'){
             /* not a main statement, put everything in the body and use a dummy as returnexpression */
             var mainBody = mainStatements; 
@@ -140,7 +159,7 @@ contract ${this.settings.templateContractName} {
 
     ${contractState.join('    \n\n')}
 
-    function ${this.settings.templateFuncMain}() public returns (${lastStatement.returnType}) {
+    function ${this.settings.templateFuncMain}() public ${lastStatement.returnType ? `returns (${lastStatement.returnType})` : ''} {
         ${mainBody.join('\n        ')}
         return ${lastStatement.returnExpression}
     }
@@ -200,6 +219,7 @@ contract ${this.settings.templateContractName} {
                         this.revert();
                         return reject(err)
                     }
+
                     return resolve(retval) // return value
                 })
             }).catch(errors => {

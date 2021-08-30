@@ -6,17 +6,119 @@
 
 ## Solidity Shell
 
-An interactive Solidity shell.
+An interactive Solidity shell with lightweight session recording.
 
 [💾](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
 
+
+```javascript
+⇒  solidity-shell
+ 
+🚀 Entering interactive Solidity shell. Type '.help' for help, '.exit' to exit.
+ »  ℹ️  ganache-mgr: starting temp. ganache instance ...
+ »
+ »  uint a = 100
+ »  uint b = 200
+ »  a + b + 2 + uint8(50)
+352
+```
+
+**Note**: The previous session can always be loaded by calling `.session load previous`.
+
 ## Examples 
+
 
 ![solidity-shell](https://user-images.githubusercontent.com/2865694/131328119-e363f20a-f627-43fc-8801-8d6613ad740f.gif)
 
-____
+#### Sample Usage
+
+```shell
+ »  .help
+
+📚 Help:
+   -----
+
+  General:
+    .help                                ... this help :)
+    .exit                                ... exit the shell
+
+  Settings:
+    .config                              ... show settings
+            set <key> <value>            ... set setting
+            unset <key>                  ... unset setting
+  Session:
+    .session                             ... list sessions
+            load <id>                    ... load session
+            save <id>                    ... save session
+            
+    .undo                                ... undo last command
+    .reset                               ... reset cmd history. start from scratch.
+
+  Debug:
+    .dump                                ... (debug) show template contract
+
+
+cheers 🙌 
+    @tintinweb 
+    ConsenSys Diligence @ https://diligence.consensys.net/
+```
+
+
+#### Contracts, Structs, Functions
+
+```javascript
+⇒  solidity-shell
+ 
+🚀 Entering interactive Solidity shell. Type '.help' for help, '.exit' to exit.
+ »  ℹ️  ganache-mgr: starting temp. ganache instance ...
+ »
+ »  contract TestContract {}
+ »  new TestContract()
+0xFBC1B2e79D816E36a1E1e923dd6c6fad463F4368
+ »  msg.sender
+0x363830C6aee2F0c43922bcB785C570a7cca613b5
+ »  block.timestamp
+1630339581
+ »  struct yolo {uint8 x; uint8 y;}
+ »  function mytest(uint x) public pure returns(uint) {
+multi> return x -5;
+multi> }
+ »  mytest(100)
+95
+```
 
 ![solidity-shell2](https://user-images.githubusercontent.com/2865694/131328490-e211e89b-ac59-4729-972b-3e3b19b75cfc.gif)
+
+#### Advanced usage
+
+```
+ »  struct yolo {uint8 x; uint8 y;}
+ »  .dump
+// SPDX-License-Identifier: GPL-2.0-or-later
+pragma solidity ^0.8.7;
+
+contract TestContract {}
+
+struct yolo {uint8 x; uint8 y;}
+
+contract MainContract {
+
+    
+
+    function main() public  {
+        uint a = 100;
+        uint b = 200;
+        a + b + 2 + uint8(50);
+        new TestContract();
+        msg.sender;
+        block.timestamp;
+        return ;
+    }
+}
+```
+____
+
+
 
 ____
 
