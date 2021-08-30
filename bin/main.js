@@ -94,11 +94,10 @@ vorpal
     .session                             ... list sessions
             load <id>                    ... load session
             save <id>                    ... save session
-            
     .undo                                ... undo last command
     .reset                               ... reset cmd history. start from scratch.
 
- ${c.bold('Debug:')}:
+ ${c.bold('Debug:')}
     .proc                                ... show processes managed by solidity-shell (ganache)
     .dump                                ... show template contract
     .echo                                ... every shell needs an echo command
@@ -132,7 +131,26 @@ cheers 🙌
                             SESSION = `${commandParts[2]}.session`;
                             saveFile(SESSION, shell.dumpSession())
                             break;
-                    }; break;
+                    }; 
+                    break;
+                case '//DISABLED-.play': 
+                    let path = `./${commandParts[1]}`
+                    if(!fs.existsSync(path)){
+                        this.log(`file not found: ${path}`);
+                        return cb();
+                    }
+                    this.log(`⏯️  playing '${path}'`)
+                    let lines = fs.readFileSync(path, 'utf-8')
+                    lines.split('\n').map(l => l.trim()).filter(l => l && l.length).forEach(l => {
+                        this.log(l)
+                        this.parent.exec(l, function(err, data){
+                            if(!err && data){
+                                return cb(data)
+                            } 
+                            return 
+                        })
+                    })
+                    break;
                 case '.dump': return cb(c.yellow(shell.template()));
                 case '.echo': return cb(c.bold(c.yellow(commandParts.slice(1).join(' '))))
                 case '.proc': 
@@ -164,4 +182,33 @@ cheers 🙌
     });
 
 
+
+/*** make autocomplete happy. this is hacky, i know 🙄 */
+
+vorpal 
+    .command(".help")
+vorpal 
+    .command(".exit")
+    .alias("exit")
+vorpal 
+    .command(".config")
+    .autocomplete(["set","unset"])
+    
+vorpal 
+    .command(".session")
+    .autocomplete(["load","save"])
+vorpal 
+    .command(".undo")
+vorpal 
+    .command(".redo")
+vorpal 
+    .command(".reset")
+vorpal 
+    .command(".proc")
+vorpal 
+    .command(".dump")
+vorpal 
+    .command(".echo <msg>")
+
+/** start in repl mode */
 vorpal.execSync("repl")
