@@ -4,12 +4,22 @@
 </sup><br/><br/>
 
 
-# Solidity Interactive Shell
-
-[🌐](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
+## Solidity Shell
 
 An interactive Solidity shell.
 
+[💾](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
+
+## Examples 
+
 ![solidity-shell](https://user-images.githubusercontent.com/2865694/131328119-e363f20a-f627-43fc-8801-8d6613ad740f.gif)
 
+____
+
 ![solidity-shell2](https://user-images.githubusercontent.com/2865694/131328490-e211e89b-ac59-4729-972b-3e3b19b75cfc.gif)
+
+____
+
+## Acknowledgements
+
+* Inspired by the great but unfortunately unmaintained [solidity-repl](https://github.com/raineorshine/solidity-repl).
