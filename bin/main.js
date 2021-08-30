@@ -209,6 +209,8 @@ vorpal
     .command(".dump")
 vorpal 
     .command(".echo <msg>")
+vorpal 
+    .command("$_")
 
 /** start in repl mode */
 vorpal.execSync("repl")
