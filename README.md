@@ -23,7 +23,7 @@ An interactive Solidity shell with lightweight session recording.
 352
 ```
 
-**Note**: The previous session can always be loaded by calling `.session load previous`.
+**Note**: The sessions can be saved and restored using the `.session` command. The previous session can always be loaded via `.session load previous` (not safe when running concurrent shells).
 
 ## Examples 
 
