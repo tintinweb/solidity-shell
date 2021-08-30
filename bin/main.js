@@ -61,8 +61,7 @@ vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
     .delimiter(c.bold('» '))
     .init(function (args, cb) {
-        this.log(`🚀 Entering interactive Solidity shell. ${c.bold('.help')} and ${c.bold('.exit')} are your friends.`);
-        this.log()
+        this.log(`🚀 Entering interactive Solidity shell. '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
         return cb();
     })
     .action(function (input, cb) {
@@ -143,7 +142,7 @@ cheers 🙌
                     return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
 
                 default:
-                    console.error(`Unknown Command: '${command}'. Type ${c.bold('.help')} for a list of commands.`);
+                    console.error(`Unknown Command: '${command}'. Type '${c.bold('.help')}' for a list of commands.`);
             }
             // meta commands
             return cb(ret);

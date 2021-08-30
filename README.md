@@ -14,7 +14,7 @@ An interactive Solidity shell with lightweight session recording.
 ```javascript
 ⇒  solidity-shell
  
-🚀 Entering interactive Solidity shell. Type '.help' for help, '.exit' to exit.
+🚀 Entering interactive Solidity shell. '.help' and '.exit' are your friends.
  »  ℹ️  ganache-mgr: starting temp. ganache instance ...
  »
  »  uint a = 100
@@ -35,21 +35,13 @@ An interactive Solidity shell with lightweight session recording.
 * **Note**: `$_` is a placeholder for the last known result. Feel free to use that placeholder in your scripts :)
 * **Note**: Special commands are dot-prefixed. Everything else is evaluated as Solidity code.
 
-
-## Examples 
-
-
-![solidity-shell](https://user-images.githubusercontent.com/2865694/131328119-e363f20a-f627-43fc-8801-8d6613ad740f.gif)
-
-#### Sample Usage
+### Usage
 
 ```shell
-
-🚀 Entering interactive Solidity shell. .help and .exit are your friends.
-
+ 🚀 Entering interactive Solidity shell. '.help' and '.exit' are your friends.
  »  ℹ️  ganache-mgr: starting temp. ganache instance ...
  »
- »  .help
+ »   .help
 
 📚 Help:
    -----
@@ -85,7 +77,13 @@ cheers 🙌
     https://github.com/tintinweb/solidity-shell/ 
 ```
 
-#### Transaction vars: `msg.sender` etc.
+## Examples 
+
+
+![solidity-shell](https://user-images.githubusercontent.com/2865694/131328119-e363f20a-f627-43fc-8801-8d6613ad740f.gif)
+
+
+### Transaction vars: `msg.sender` etc.
 
 ```javascript
  »  msg.sender
@@ -94,7 +92,7 @@ cheers 🙌
 0x70e9B09abd6A13D2F5083CD5814076b77427199F
 ```
 
-#### Contracts, Structs, Functions
+### Contracts, Structs, Functions
 
 ```javascript
 ⇒  solidity-shell
@@ -119,7 +117,7 @@ multi> }
 
 ![solidity-shell2](https://user-images.githubusercontent.com/2865694/131328490-e211e89b-ac59-4729-972b-3e3b19b75cfc.gif)
 
-#### Advanced usage
+### Advanced usage
 
 ```javascript
  »  struct yolo {uint8 x; uint8 y;}
