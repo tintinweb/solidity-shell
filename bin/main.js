@@ -16,7 +16,11 @@ const { convert, multilineInput } = require('../src/utils');
 const CONFIG_HOME = path.join(os.homedir(), '.solidity-shell');
 const CONFIG_FILE = '.config';
 
+const REX_PLACEHOLDER = /\s(\$_)(\s|$)/ig /* LAST_KNOWN_RESULT placeholder */
+
+var LAST_KNOWN_RESULT = 'ss';
 var SESSION = 'previous.session';
+
 
 /** static funcs */
 function loadFile(name){
@@ -57,11 +61,16 @@ vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
     .delimiter(c.bold('» '))
     .init(function (args, cb) {
-        this.log('🚀 Entering interactive Solidity shell. Type \'.help\' for help, \'.exit\' to exit.');
+        this.log(`🚀 Entering interactive Solidity shell. ${c.bold('.help')} and ${c.bold('.exit')} are your friends.`);
+        this.log()
         return cb();
     })
     .action(function (input, cb) {
         let command = multilineInput(input);
+
+        /* substitute placeholder: $_ */
+        command = command.replace(REX_PLACEHOLDER, ' ' + LAST_KNOWN_RESULT + ' ');
+
         if (command.startsWith('.')) {
             let commandParts = command.split(' ');
             let ret = undefined;
@@ -71,15 +80,18 @@ vorpal
 📚 Help:
    -----
 
-  General:
+ ${c.bold('$_')} is a placeholder holding the most recent evaluation result.
+
+
+ ${c.bold('General:')}
     .help                                ... this help :)
     .exit                                ... exit the shell
 
-  Settings:
+ ${c.bold('Settings:')}
     .config                              ... show settings
             set <key> <value>            ... set setting
             unset <key>                  ... unset setting
-  Session:
+ ${c.bold('Session:')}
     .session                             ... list sessions
             load <id>                    ... load session
             save <id>                    ... save session
@@ -87,13 +99,15 @@ vorpal
     .undo                                ... undo last command
     .reset                               ... reset cmd history. start from scratch.
 
-  Debug:
+ ${c.bold('Debug:')}:
     .dump                                ... (debug) show template contract
+    .echo                                ... every shell needs an echo command
 
 
 cheers 🙌 
-    @tintinweb 
-    ConsenSys Diligence @ https://diligence.consensys.net/
+    ${c.bold('@tintinweb')} 
+    ConsenSys Diligence @ https://consensys.net/diligence/
+    https://github.com/tintinweb/solidity-shell/ 
 `);
 
                     break; //show usage
@@ -110,7 +124,7 @@ cheers 🙌
                     switch(commandParts[1]){
                         default:
                             let sessions = fs.readdirSync(CONFIG_HOME).filter(file => file.endsWith('.session'));
-                            return cb('     - ' + sessions.map(s => s.replace('.session','')).join('\n     - '));
+                            return cb('     - ' + sessions.map(s => c.bold(s.replace('.session',''))).join('\n     - '));
                         case 'load': 
                             shell.loadSession(loadFile(`${commandParts[2]}.session`))
                             break;
@@ -119,10 +133,11 @@ cheers 🙌
                             saveFile(SESSION, shell.dumpSession())
                             break;
                     }; break;
-                case '.dump': return cb(shell.template());
+                case '.dump': return cb(c.yellow(shell.template()));
+                case '.echo': return cb(c.bold(c.yellow(commandParts.slice(1).join(' '))))
 
                 default:
-                    console.error(`unknown command: ${command}. type '.help' for a list of commands.`);
+                    console.error(`Unknown Command: '${command}'. Type ${c.bold('.help')} for a list of commands.`);
             }
             // meta commands
             return cb(ret);
@@ -135,6 +150,7 @@ cheers 🙌
             if(typeof res === 'object'){
                 return cb();
             }
+            LAST_KNOWN_RESULT = res;
             cb(c.bold(c.yellow(res)));
         }).catch(errors => {
             console.error(errors)
