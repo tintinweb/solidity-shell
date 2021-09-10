@@ -10,6 +10,9 @@ An interactive Solidity shell with lightweight session recording.
 
 [💾](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
 
+<sub><b>note:</b> may require `npm install ganache-cli` if option `autostartGanache=True` (default)
+</sub>
+
 
 ```javascript
 ⇒  solidity-shell
