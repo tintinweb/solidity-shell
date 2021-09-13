@@ -6,6 +6,7 @@
 /** IMPORT */
 const Web3 = require('web3')
 const solc = require('solc')
+const { solcVersions } = require('./solcVersions.js')
 
 /** CONST */
 const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
@@ -16,7 +17,28 @@ const IGNORE_WARNINGS = [
     "Unused local variable."
 ]
 
+const SCOPE = {
+    CONTRACT: 1,  /* statement in contract scope */
+    SOURCE_UNIT: 2, /* statement in source unit scope */
+    MAIN: 4, /* statement in main function scope */
+    VERSION_PRAGMA: 5 /* statement is a solidity version pragma */
+}
+
 /** STATIC FUNC */
+
+function getBestSolidityVersion(source) {
+    var rx = /^pragma solidity (\^?[^;]+);$/gm;
+    let allVersions = source.match(rx).map(e => {
+      try {
+        return e.match(/(\d+)\.(\d+)\.(\d+)/).splice(1,3).map(a => parseInt(a))
+      } catch {}
+    })
+    let lastVersion = allVersions[allVersions.length-1];
+    if(!lastVersion){
+        return undefined;
+    }
+    return `^${lastVersion.join('.')}`;
+}
 
 /** CLASS */
 class SolidityStatement {
@@ -29,22 +51,27 @@ class SolidityStatement {
             this.scope = scope
         } else {
             if (this.rawCommand.startsWith('function ') || this.rawCommand.startsWith('modifier ')) {
-                this.scope = "contract";
+                this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
             } else if (this.rawCommand.startsWith('mapping ') || this.rawCommand.startsWith('event ')) {
-                this.scope = "contract";
+                this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
+            } else if (this.rawCommand.startsWith('pragma solidity ')) {
+                this.scope = SCOPE.VERSION_PRAGMA;
+                this.hasNoReturnValue = true;
+                this.rawCommand = this.fixStatement(this.rawCommand);
             } else if (this.rawCommand.startsWith('pragma ')) {
-                this.scope = "sourceUnit";
+                this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
+                this.rawCommand = this.fixStatement(this.rawCommand);
             } else if (this.rawCommand.startsWith('struct ')) {
-                this.scope = "sourceUnit";
+                this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else if (this.rawCommand.startsWith('contract ')) {
-                this.scope = "sourceUnit";
+                this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else {
-                this.scope = "main";
+                this.scope = SCOPE.MAIN;
                 this.rawCommand = this.fixStatement(this.rawCommand);
                 if(this.rawCommand===';'){
                     this.hasNoReturnValue = true;
@@ -95,6 +122,11 @@ class InteractiveSolidityShell {
             ...defaults, ... (settings || {})
         };
 
+        this.cache = {
+            compiler: {} /** compilerVersion:object */
+        }
+        
+        this.cache.compiler[this.settings.installedSolidityVersion.startsWith("^") ? this.settings.installedSolidityVersion.substring(1) : this.settings.installedSolidityVersion] = solc;
         this.reset()
 
         this.blockchain = new Blockchain(this.settings, this.log)
@@ -119,14 +151,12 @@ class InteractiveSolidityShell {
     }
 
     reset() {
-        //console.log("---REVERT--")
         this.session = {
             statements: [],
         }
     }
 
     revert() {
-        //console.log("---REVERT--")
         this.session.statements.pop();
     }
 
@@ -135,12 +165,16 @@ class InteractiveSolidityShell {
     }
 
     template() {
-        const prologue = this.session.statements.filter(stm => stm.scope === "sourceUnit");
-        const contractState = this.session.statements.filter(stm => stm.scope === "contract");
-        const mainStatements = this.session.statements.filter(stm => stm.scope === "main");
+        const prologue = this.session.statements.filter(stm => stm.scope === SCOPE.SOURCE_UNIT);
+        const contractState = this.session.statements.filter(stm => stm.scope === SCOPE.CONTRACT);
+        const mainStatements = this.session.statements.filter(stm => stm.scope === SCOPE.MAIN);
 
+        /* figure out which compiler version to use */
+        const lastVersionPragma = this.session.statements.filter(stm => stm.scope === SCOPE.VERSION_PRAGMA).pop();
+
+        /* prepare body and return statement */
         var lastStatement = this.session.statements[this.session.statements.length -1] || {}
-        if(lastStatement.scope !== 'main'){
+        if(lastStatement.scope !== SCOPE.MAIN){
             /* not a main statement, put everything in the body and use a dummy as returnexpression */
             var mainBody = mainStatements; 
             lastStatement = new SolidityStatement() // add dummy w/o return value
@@ -148,10 +182,9 @@ class InteractiveSolidityShell {
             var mainBody = mainStatements.slice(0, mainStatements.length - 1)
         }
 
-
         const ret = `
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ${this.settings.installedSolidityVersion};
+${lastVersionPragma ? lastVersionPragma.rawCommand : `pragma solidity ${this.settings.installedSolidityVersion};`}
 
 ${prologue.join('\n\n')}
 
@@ -168,36 +201,77 @@ contract ${this.settings.templateContractName} {
         return ret;
     }
 
-    async compile(source, cbWarning) {
-        let input = {
-            language: 'Solidity',
-            sources: {
-                '': {
-                    content: source,
-                },
-            },
-            settings: {
-                outputSelection: {
-                    '*': {
-                        //
+
+    loadCachedCompiler(solidityVersion) {
+        solidityVersion = solidityVersion.startsWith("^") ? solidityVersion.substring(1) : solidityVersion; //strip leading ^
+        /** load remote version - (maybe cache?) */
+        if(this.cache.compiler[solidityVersion]){
+            return new Promise((resolve, reject) => {
+                return resolve(this.cache.compiler[solidityVersion]);
+            });
+        }
+
+        var remoteSolidityVersion = solcVersions.find(
+            (e) => !e.includes('nightly') && e.includes(`v${solidityVersion}`)
+        )
+
+        var that = this;
+
+        return new Promise((resolve, reject) => {
+            solc.loadRemoteVersion(remoteSolidityVersion, function (err, solcSnapshot) {
+                that.cache.compiler[solidityVersion] = solcSnapshot;
+                return resolve(solcSnapshot)
+            })
+        });
+        
+    }
+
+    compile(source, cbWarning) {
+
+        let solidityVersion = getBestSolidityVersion(source);
+
+        return new Promise((resolve, reject) => {
+
+            this.loadCachedCompiler(solidityVersion).then(solcSelected => {
+
+                let input = {
+                    language: 'Solidity',
+                    sources: {
+                        '': {
+                            content: source,
+                        },
                     },
-                },
-            },
-        }
-        input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
+                    settings: {
+                        outputSelection: {
+                            '*': {
+                                //
+                            },
+                        },
+                    },
+                }
+                input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
+        
+                let ret = JSON.parse(solcSelected.compile(JSON.stringify(input)))
+                if (ret.errors) {
+                    let realErrors = ret.errors.filter(err => err.type !== 'Warning');
+                    if (realErrors.length) {
+                        return reject(realErrors);
+                    }
+                    // print handle warnings
+                    let warnings = ret.errors.filter(err => err.type === 'Warning' && !IGNORE_WARNINGS.some(target => err.message.includes(target)));
+                    if(warnings.length) cbWarning(warnings);
+        
+                }
+                return resolve(ret);
+            });
+    
 
-        let ret = JSON.parse(solc.compile(JSON.stringify(input)))
-        if (ret.errors) {
-            let realErrors = ret.errors.filter(err => err.type !== 'Warning');
-            if (realErrors.length) {
-                throw realErrors;
-            }
-            // print handle warnings
-            let warnings = ret.errors.filter(err => err.type === 'Warning' && !IGNORE_WARNINGS.some(target => err.message.includes(target)));
-            if(warnings.length) cbWarning(warnings);
+        });
 
-        }
-        return ret;
+     
+        
+
+        
     }
 
     run(statement) {

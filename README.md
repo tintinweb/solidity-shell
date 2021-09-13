@@ -27,6 +27,8 @@ An interactive Solidity shell with lightweight session recording.
 
 ### Hints
 
+
+* **Note**: Type `pragma solidity <version>` to dynamically load a different compiler version.
 * **Note**: Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
 * **Note**: `.reset` completely removes all statements. `.undo` removes the last statement.
 * **Note**: See what's been generated under the hood? call `.dump`.
