@@ -214,4 +214,4 @@ vorpal
 
 /** start in repl mode */
 vorpal.execSync("repl")
-//vorpal.execSync("1+2") /* debug */
+//vorpal.execSync("uint a = 2") /* debug */

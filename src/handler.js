@@ -174,7 +174,7 @@ class InteractiveSolidityShell {
 
         /* prepare body and return statement */
         var lastStatement = this.session.statements[this.session.statements.length -1] || {}
-        if(lastStatement.scope !== SCOPE.MAIN){
+        if(lastStatement.scope !== SCOPE.MAIN || lastStatement.hasNoReturnValue === true){
             /* not a main statement, put everything in the body and use a dummy as returnexpression */
             var mainBody = mainStatements; 
             lastStatement = new SolidityStatement() // add dummy w/o return value
@@ -327,14 +327,13 @@ contract ${this.settings.templateContractName} {
                     let contractData = res.contracts[''];
                     contractData[this.settings.templateContractName]['main'] = this.settings.templateFuncMain;
 
-                    this.blockchain.deploy(contractData, (err, retval, c, d, e) => {
+                    this.blockchain.deploy(contractData, (err, retval) => {
                         if (err) {
                             this.revert();
                             return reject(err)
                         }
                         return resolve(retval) // return value
                     })
-
                 }).catch(errors => {
                     // error here
                     this.revert();
@@ -386,11 +385,13 @@ class Blockchain {
         this.proc && this.proc.kill('SIGINT');
     }
 
-    async getAccounts() {
-        return this.web3.eth.getAccounts((err, result) => {
-            if (err) throw new Error(err);
-            return result;
-        })
+    getAccounts() {
+        return new Promise((resolve, reject) => {
+            this.web3.eth.getAccounts((err, result) => {
+                if (err) return reject(new Error(err));
+                return resolve(result);
+            })
+        });
     }
 
     async deploy(contracts, callback) {
@@ -406,18 +407,22 @@ class Blockchain {
             }
             this.deployed[templateContractName] = thisContract;
             this.getAccounts()
-                .then(accounts => {
-                    thisContract.accounts = accounts;
-                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 3e6 })
-                    thisContract.instance = instance;
-                    return instance;
-                })
-                .then(contract => {
-                    if (thisContract.main) {
-                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 3e6 }, callback);
-                    }
-                    return;
-                })
+            .then(accounts => {
+                thisContract.accounts = accounts;
+                let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 3e6 })
+                thisContract.instance = instance;
+                return instance;
+            })
+            .then(contract => {
+                if (thisContract.main) {
+                    contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 3e6 }, callback);
+                }
+                return;
+            })
+            .catch(err => {
+                callback(`💥  ganache not yet ready. Please try again. (👉 ${err} 👈)`)
+            })
+ 
         }, this);
     }
 }
