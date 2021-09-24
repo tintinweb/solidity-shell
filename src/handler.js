@@ -60,7 +60,7 @@ class SolidityStatement {
                 this.scope = SCOPE.VERSION_PRAGMA;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-            } else if (this.rawCommand.startsWith('pragma ')) {
+            } else if (this.rawCommand.startsWith('pragma ') || this.rawCommand.startsWith('import ')) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
@@ -91,7 +91,7 @@ class SolidityStatement {
     }
 
     fixStatement(stm) {
-        return stm.endsWith(';') ? stm : `${stm};`
+        return (stm.endsWith(';') || stm.endsWith('}')) ? stm : `${stm};`
     }
 
     toString() {
@@ -287,13 +287,11 @@ contract ${this.settings.templateContractName} {
                 let contractData = res.contracts[''];
                 contractData[this.settings.templateContractName]['main'] = this.settings.templateFuncMain;
 
-
                 this.blockchain.deploy(contractData, (err, retval) => {
                     if (err) {
                         this.revert();
                         return reject(err)
                     }
-
                     return resolve(retval) // return value
                 })
             }).catch(errors => {
@@ -426,5 +424,6 @@ class Blockchain {
 
 module.exports = {
     InteractiveSolidityShell,
-    SolidityStatement
+    SolidityStatement,
+    SCOPE
 }

@@ -117,7 +117,7 @@ cheers 🙌
                 case '.config':
                     switch(commandParts[1]){
                         case 'set': shell.setSetting(commandParts[2], convert(commandParts[3])); break;
-                        case 'del': delete shell.settings[commandParts[2]]; break;
+                        case 'unset': delete shell.settings[commandParts[2]]; break;
                         default: return cb(shell.settings); 
                     } break;
                 case '.session': 
@@ -159,7 +159,6 @@ cheers 🙌
                         return cb();
                     }
                     return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
-
                 default:
                     console.error(`Unknown Command: '${command}'. Type '${c.bold('.help')}' for a list of commands.`);
             }
@@ -171,7 +170,7 @@ cheers 🙌
 
         /* REPL cmd */
         shell.run(statement).then(res => {
-            if(typeof res === 'object'){
+            if(!Array.isArray(res) && typeof res === 'object'){
                 return cb();
             }
             LAST_KNOWN_RESULT = res;
