@@ -6,13 +6,12 @@
 
 ## Solidity Shell
 
-An interactive Solidity shell with lightweight session recording.
+An interactive Solidity shell with lightweight session recording and remote compiler support.
 
 [💾](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
 
-<sub><b>note:</b> may require `npm install ganache-cli` if option `autostartGanache=True` (default)
+<sub><b>note:</b> may require `npm install ganache-cli` unless it is already installed :)
 </sub>
-
 
 ```javascript
 ⇒  solidity-shell
@@ -28,17 +27,19 @@ An interactive Solidity shell with lightweight session recording.
 352
 ```
 
+Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pgrama solidity 0.5.0` and solidity-shell will do the rest 🙌
+
 ### Hints
 
 
-* **Note**: Type `pragma solidity <version>` to dynamically load a different compiler version.
-* **Note**: Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
-* **Note**: `.reset` completely removes all statements. `.undo` removes the last statement.
-* **Note**: See what's been generated under the hood? call `.dump`.
-* **Note**: Settings are saved on exit (not safe when running concurrent shells). call `config set <key> <value>` to change settings like ganache port, ganache autostart, etc.
-* **Note**: Solidity version is currently fixed to the `solc` package that comes with the shell. If there's interest we might change that to allow remote compiler versions.
-* **Note**: `$_` is a placeholder for the last known result. Feel free to use that placeholder in your scripts :)
-* **Note**: Special commands are dot-prefixed. Everything else is evaluated as Solidity code.
+
+* `pragma solidity <version>` attempts to dynamically load the selected compiler version (remote compiler, may take a couple of seconds).
+* Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
+* `.reset` completely removes all statements. `.undo` removes the last statement.
+* See what's been generated under the hood? call `.dump`.
+* Settings are saved on exit (not safe when running concurrent shells). call `config set <key> <value>` to change settings like ganache port, ganache autostart, etc.
+* `$_` is a placeholder for the last known result. Feel free to use that placeholder in your scripts :)
+* Special commands are dot-prefixed. Everything else is evaluated as Solidity code.
 
 ### Usage
 
