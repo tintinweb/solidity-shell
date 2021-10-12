@@ -67,7 +67,7 @@ class SolidityStatement {
             } else if (this.rawCommand.startsWith('struct ')) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
-            } else if (this.rawCommand.startsWith('contract ')) {
+            } else if (this.rawCommand.startsWith('contract ') || this.rawCommand.startsWith('interface ')) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else {
