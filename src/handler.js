@@ -397,6 +397,10 @@ class Blockchain {
     async deploy(contracts, callback) {
         //sort deploy other contracts first
         Object.entries(contracts).sort((a, b) => a[1].main ? 10 : -1).forEach(([templateContractName, o]) => {
+            if(o.evm.bytecode.object.length === 0){
+                return; //no bytecode, probably an interface
+            }
+
             let thisContract = {
                 bytecode: o.evm.bytecode.object,
                 abi: o.abi,
@@ -405,6 +409,7 @@ class Blockchain {
                 main: o.main,
                 accounts: undefined
             }
+
             this.deployed[templateContractName] = thisContract;
             this.getAccounts()
             .then(accounts => {
