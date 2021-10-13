@@ -1,6 +1,9 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.0.6
+- fix: handle interface declarations
+
 ## v0.0.5
 - fix: support blocks/loops - #2
 - fix: better ganache error handling and minor refactoring
