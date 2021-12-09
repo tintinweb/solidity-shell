@@ -1,8 +1,8 @@
+'use strict'
 /**
  * @author github.com/tintinweb
  * @license MIT
  * */
-
 
 function convert(str){
     switch(str){
@@ -32,6 +32,8 @@ function multilineInput(command){
     }
     return command;
 }
+
+
 
 module.exports = {
     convert,
