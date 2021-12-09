@@ -6,11 +6,12 @@
 /** IMPORT */
 const Web3 = require('web3')
 const solc = require('solc')
-const { solcVersions } = require('./solcVersions.js')
+const { getRemoteCompiler } = require('./remoteCompiler.js')
 
 /** CONST */
 const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
-const rexAssign = /[^=]=[^=]/;
+const rexAssign = /[^=]=[^=];?/;
+const rexTypeDecl = /^([\w\[\]]+\s(memory|storage)?\s*\w+);?$/
 const IGNORE_WARNINGS = [
     "Statement has no effect.",
     "Function state mutability can be restricted to ",
@@ -45,7 +46,11 @@ class SolidityStatement {
 
     constructor(rawCommand, scope) {
         this.rawCommand = rawCommand ? rawCommand.trim() : "";
-        this.hasNoReturnValue = (rexAssign.test(this.rawCommand)) || (this.rawCommand.startsWith('delete')) || (this.rawCommand.startsWith('assembly')) || (this.rawCommand.startsWith('revert'))
+        this.hasNoReturnValue = (rexAssign.test(this.rawCommand)) 
+            || (this.rawCommand.startsWith('delete')) 
+            || (this.rawCommand.startsWith('assembly')) 
+            || (this.rawCommand.startsWith('revert'))
+            || (rexTypeDecl.test(this.rawCommand))
 
         if (scope) {
             this.scope = scope
@@ -53,7 +58,7 @@ class SolidityStatement {
             if (this.rawCommand.startsWith('function ') || this.rawCommand.startsWith('modifier ')) {
                 this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
-            } else if (this.rawCommand.startsWith('mapping ') || this.rawCommand.startsWith('event ')) {
+            } else if (this.rawCommand.startsWith('mapping ') || this.rawCommand.startsWith('event ') || this.rawCommand.startsWith('error ')) {
                 this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
             } else if (this.rawCommand.startsWith('pragma solidity ')) {
@@ -111,7 +116,7 @@ class InteractiveSolidityShell {
         const defaults = {
             templateContractName: 'MainContract',
             templateFuncMain: 'main',
-            installedSolidityVersion: require('../package.json').dependencies.solc.split("-", 1)[0],
+            installedSolidityVersion: null, // overridden after merging settings; never use configured value
             providerUrl: 'http://localhost:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
@@ -121,6 +126,8 @@ class InteractiveSolidityShell {
         this.settings = {
             ...defaults, ... (settings || {})
         };
+
+        this.settings.installedSolidityVersion = require('../package.json').dependencies.solc.split("-", 1)[0];
 
         this.cache = {
             compiler: {} /** compilerVersion:object */
@@ -203,35 +210,38 @@ contract ${this.settings.templateContractName} {
 
 
     loadCachedCompiler(solidityVersion) {
+
         solidityVersion = solidityVersion.startsWith("^") ? solidityVersion.substring(1) : solidityVersion; //strip leading ^
-        /** load remote version - (maybe cache?) */
-        if(this.cache.compiler[solidityVersion]){
-            return new Promise((resolve, reject) => {
-                return resolve(this.cache.compiler[solidityVersion]);
-            });
-        }
-
-        var remoteSolidityVersion = solcVersions.find(
-            (e) => !e.includes('nightly') && e.includes(`v${solidityVersion}`)
-        )
-
         var that = this;
+        /** load remote version - (maybe cache?) */
 
         return new Promise((resolve, reject) => {
-            solc.loadRemoteVersion(remoteSolidityVersion, function (err, solcSnapshot) {
-                that.cache.compiler[solidityVersion] = solcSnapshot;
-                return resolve(solcSnapshot)
-            })
+            if(that.cache.compiler[solidityVersion]){
+                return resolve(that.cache.compiler[solidityVersion]);
+            }
+
+            getRemoteCompiler(solidityVersion)
+                .then(remoteSolidityVersion => {
+                    solc.loadRemoteVersion(remoteSolidityVersion, function (err, solcSnapshot) {
+                        that.cache.compiler[solidityVersion] = solcSnapshot;
+                        return resolve(solcSnapshot)
+                    })
+                })
+                .catch(err => {
+                    return reject(err)
+                })
         });
         
     }
 
     compile(source, cbWarning) {
-
         let solidityVersion = getBestSolidityVersion(source);
 
         return new Promise((resolve, reject) => {
 
+            if(!solidityVersion){
+                return reject(new Error(`No valid solidity version found in source code (e.g. pragma solidity 0.8.10).`));
+            }
             this.loadCachedCompiler(solidityVersion).then(solcSelected => {
 
                 let input = {
@@ -263,6 +273,9 @@ contract ${this.settings.templateContractName} {
         
                 }
                 return resolve(ret);
+            })
+            .catch(err => {
+                return reject(err);
             });
     
 
@@ -296,6 +309,11 @@ contract ${this.settings.templateContractName} {
                 })
             }).catch(errors => {
                 // frownie face
+                
+                if(!Array.isArray(errors)){ //handle single error
+                    this.revert();
+                    return reject(errors);
+                }
                 //get last typeError to detect return type:
                 let lastTypeError = errors.slice().reverse().find(err => err.type === "TypeError");
                 if (!lastTypeError) {

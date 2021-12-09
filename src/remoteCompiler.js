@@ -49,7 +49,7 @@ function getRemoteCompiler(solidityVersion) {
             if (found) {
                 return resolve(found);
             }
-            return reject(`No compiler found for version ${solidityVersion}`);
+            return reject(new Error(`No compiler found for version ${solidityVersion}`));
         })
 
     });
