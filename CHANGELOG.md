@@ -1,6 +1,16 @@
 # Change Log
 All notable changes will be documented in this file.
 
+
+## v0.0.7
+- fix: rework remote compiler
+  - added a remoteCompiler wrapper
+- fix: always use latest compiler shipped with this package by default
+  - new: ship with solc 0.8.10
+  - preference: use solc shipped with package by default, else check static solcVersions list and fetch remote compiler, else update solcVersions list and fetch remote compiler.
+- fix: better error handling when changing compiler version
+- new: support `error` keyword and fix memory/storage type declarations
+
 ## v0.0.6
 - fix: handle interface declarations
 
