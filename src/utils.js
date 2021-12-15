@@ -11,7 +11,8 @@ function convert(str){
         case 'false': return false;
     }
     try {
-        return parseInt(str);
+        let num = parseInt(str);
+        if(!isNaN(num)) return num;
     } catch {}
 
     return str;
@@ -32,8 +33,6 @@ function multilineInput(command){
     }
     return command;
 }
-
-
 
 module.exports = {
     convert,

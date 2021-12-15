@@ -1,6 +1,24 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.0.8
+- new: Passthru ganache-cli settings as options to solidity-shell #7
+```shell
+solidity-shell -- -fork https://mainnet.infura.io/v3/yourToken
+```
+
+Query a live contracts `ERC20.name()`:
+```solidity
+
+ »  interface ERC20 {
+multi> function name() external view returns (string memory);
+multi> }
+ 
+ »  ERC20(0xB8c77482e45F1F44dE1745F52C74426C631bDD52).name()
+BNB
+
+```
+- fix: `.config set` handling of strings and multi-word arguments
 
 ## v0.0.7
 - fix: rework remote compiler

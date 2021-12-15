@@ -42,20 +42,31 @@ function saveFile(name, data){
 }
 
 /** MAIN */
+const argv = require('minimist')(process.argv, {'--': true});
+var config = loadFile(CONFIG_FILE);
+const oldGanacheArgs = config.ganacheArgs;
+if(argv['--'].length){ // temporarily override ganache args
+    config.ganacheArgs = argv['--'];
+}
 
-const shell = new InteractiveSolidityShell(loadFile(CONFIG_FILE));
+const shell = new InteractiveSolidityShell(config);
 
-const vorpal = new Vorpal()
-    .delimiter('')
-    .show()
-    .parse(process.argv);
 
 process.on('exit', () => { 
     shell.blockchain.stopService(); 
+    if(argv['--'].length){ //restore old ganache args
+        shell.settings.ganacheArgs = oldGanacheArgs;
+    }
     saveFile(CONFIG_FILE, shell.settings)
     saveFile(SESSION, shell.dumpSession())
 });
 
+
+
+const vorpal = new Vorpal()
+    .delimiter('')
+    .show()
+    .parse(argv._);
 
 vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
@@ -116,7 +127,7 @@ cheers 🙌
                 case '.undo': shell.revert(); break; //revert last action
                 case '.config':
                     switch(commandParts[1]){
-                        case 'set': shell.setSetting(commandParts[2], convert(commandParts[3])); break;
+                        case 'set': shell.setSetting(commandParts[2], convert(commandParts.slice(3).join(' '))); break;
                         case 'unset': delete shell.settings[commandParts[2]]; break;
                         default: return cb(shell.settings); 
                     } break;
