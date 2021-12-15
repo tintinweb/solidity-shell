@@ -25,6 +25,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "minimist": "^1.2.5",
     "readline-sync": "^1.4.10",
     "request": "^2.88.2",
     "solc": "^0.8.10",
