@@ -8,7 +8,7 @@
 
 An interactive Solidity shell with lightweight session recording and remote compiler support.
 
-[💾](https://www.npmjs.com/package/solidity-shell) `npm install solidity-shell` 
+[💾](https://www.npmjs.com/package/solidity-shell) `npm install -g solidity-shell` 
 
 <sub><b>note:</b> may require `npm install ganache-cli` unless it is already installed :)
 </sub>
