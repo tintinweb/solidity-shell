@@ -50,6 +50,17 @@ Any arguments provided after an empty `--` are directly passed to `ganacheCmd` (
 
 ```shell
 ⇒  solidity-shell -- --fork https://mainnet.infura.io/v3/yourApiToken
+ 
+🚀 Entering interactive Solidity shell. Type '.help' for help, '.exit' to exit.
+ »  ℹ️  ganache-mgr: starting temp. ganache instance ...
+ »
+ »  interface ERC20 {
+multi> function name() external view returns (string memory);
+multi> }
+ 
+ »  ERC20(0xB8c77482e45F1F44dE1745F52C74426C631bDD52).name()
+BNB
+
 ```
 
 #### Repl
