@@ -27,11 +27,11 @@ An interactive Solidity shell with lightweight session recording and remote comp
 352
 ```
 
-Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pgrama solidity 0.5.0` and solidity-shell will do the rest 🙌
+Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pgrama solidity 0.5.0` and solidity-shell will do the rest 🙌.
+
+
 
 ### Hints
-
-
 
 * `pragma solidity <version>` attempts to dynamically load the selected compiler version (remote compiler, may take a couple of seconds).
 * Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
@@ -41,7 +41,18 @@ Oh, did you know that we automatically fetch a matching remote compiler when you
 * `$_` is a placeholder for the last known result. Feel free to use that placeholder in your scripts :)
 * Special commands are dot-prefixed. Everything else is evaluated as Solidity code.
 
+
 ### Usage
+
+#### Cmdline Passthru
+
+Any arguments provided after an empty `--` are directly passed to `ganacheCmd` (default: `ganache-cli`). This way, for example, you can start a solidity shell on a ganache fork of mainnet via infura. Check `ganache-cli --help` for a list of available options.
+
+```shell
+⇒  solidity-shell -- --fork https://mainnet.infura.io/v3/yourApiToken
+```
+
+#### Repl
 
 ```shell
  🚀 Entering interactive Solidity shell. '.help' and '.exit' are your friends.
