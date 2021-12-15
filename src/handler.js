@@ -113,6 +113,7 @@ class InteractiveSolidityShell {
 
     constructor(settings, log) {
         this.log = log || console.log;
+
         const defaults = {
             templateContractName: 'MainContract',
             templateFuncMain: 'main',
@@ -120,6 +121,7 @@ class InteractiveSolidityShell {
             providerUrl: 'http://localhost:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
+            ganacheArgs: [],
             debugShowContract: false
         }
 
@@ -153,7 +155,19 @@ class InteractiveSolidityShell {
     }
 
     setSetting(key, value){
-        if(key === 'installedSolidityVersion') return;
+        switch(key){
+            case 'installedSolidityVersion': return;
+            case 'ganacheArgs':
+                if(!value) {
+                    value = [];
+                }
+                else if(!Array.isArray(value)){
+                    value = value.split(' ');
+                }
+                break;
+            case 'ganacheCmd':
+                value = value.trim();
+        }
         this.settings[key] = value;
     }
 
@@ -395,7 +409,7 @@ class Blockchain {
         if (this.proc) {
             return this.proc;
         }
-        this.proc = require('child_process').spawn(this.settings.ganacheCmd);
+        this.proc = require('child_process').spawn(this.settings.ganacheCmd, this.settings.ganacheArgs);
     }
 
     stopService() {
