@@ -1,6 +1,12 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.0.8
+- new: Passthru ganache-cli settings as options to solidity-shell #7
+```shell
+⇒ solidity-shell -- -fork https://mainnet.infura.io/v3/yourToken
+```
+- fix: `.config set` handling of strings and multi-word arguments
 
 ## v0.0.7
 - fix: rework remote compiler
