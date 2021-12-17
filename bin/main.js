@@ -51,7 +51,6 @@ if(argv['--'].length){ // temporarily override ganache args
 
 const shell = new InteractiveSolidityShell(config);
 
-
 process.on('exit', () => { 
     shell.blockchain.stopService(); 
     if(argv['--'].length){ //restore old ganache args
@@ -61,12 +60,16 @@ process.on('exit', () => {
     saveFile(SESSION, shell.dumpSession())
 });
 
-
-
 const vorpal = new Vorpal()
     .delimiter('')
     .show()
     .parse(argv._);
+
+vorpal.on('client_prompt_submit', (cmd) => {
+    if(cmd.trim() === 'exit'){
+        process.exit(0); // exit completely from repl. otherwise, would return to main vorpal loop
+    }
+});
 
 vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
@@ -122,7 +125,7 @@ cheers 🙌
 `);
 
                     break; //show usage
-                case '.exit': process.exit(); //exit -> no more cb()
+                case '.exit': process.exit(); break; //exit -> no more cb()
                 case '.reset': shell.reset(); break; //reset complete state
                 case '.undo': shell.revert(); break; //revert last action
                 case '.config':
@@ -225,4 +228,5 @@ vorpal
 
 /** start in repl mode */
 vorpal.execSync("repl")
+
 //vorpal.execSync("uint a = 2") /* debug */

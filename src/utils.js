@@ -29,7 +29,7 @@ function multilineInput(command){
         }
 
         const rl = require('readline-sync');
-        command += '\n' + rl.question("multi> ").trim()
+        command += '\n' + rl.question("... ").trim()
     }
     return command;
 }
