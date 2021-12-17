@@ -19,6 +19,7 @@ BNB
 
 ```
 - fix: `.config set` handling of strings and multi-word arguments
+- fix: `exit` exits solidity-shell completely
 
 ## v0.0.7
 - fix: rework remote compiler
