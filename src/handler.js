@@ -118,7 +118,7 @@ class InteractiveSolidityShell {
             templateContractName: 'MainContract',
             templateFuncMain: 'main',
             installedSolidityVersion: null, // overridden after merging settings; never use configured value
-            providerUrl: 'http://localhost:8545',
+            providerUrl: 'http://127.0.0.1:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
             ganacheArgs: [],

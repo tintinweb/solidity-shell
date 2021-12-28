@@ -1,6 +1,9 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.0.9
+- fix: `localhost` alias may not be available on some systems - #9
+
 ## v0.0.8
 - new: Passthru ganache-cli settings as options to solidity-shell #7
 ```shell
