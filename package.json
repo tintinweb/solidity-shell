@@ -7,7 +7,7 @@
     "solidity-shell": "bin/main.js"
   },
   "scripts": {
-    "updateCompilerList": "node scripts/UpdateCompilerList.js > src/solcVersions.js"
+    "updateCompilerList": "node scripts/UpdateCompilerList.js > src/compiler/solcVersions.js"
   },
   "author": {
     "name": "tintinweb",

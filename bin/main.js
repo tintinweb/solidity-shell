@@ -11,7 +11,7 @@ const os = require('os');
 const path = require('path');
 
 const { InteractiveSolidityShell, SolidityStatement } = require('../src/handler');
-const { convert, multilineInput } = require('../src/utils');
+const { convert, multilineInput } = require('../src/cli/utils');
 
 const CONFIG_HOME = path.join(os.homedir(), '.solidity-shell');
 const CONFIG_FILE = '.config';

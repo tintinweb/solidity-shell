@@ -4,7 +4,7 @@
  * @author github.com/tintinweb
  * @license MIT
  * */
-const { getSolcJsCompilerList } = require('../src/remoteCompiler');
+const { getSolcJsCompilerList } = require('../src/compiler/remoteCompiler');
 
 
 getSolcJsCompilerList({nightly:false}).then(compilers => {

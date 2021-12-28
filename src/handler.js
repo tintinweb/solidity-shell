@@ -6,8 +6,8 @@
 /** IMPORT */
 const Web3 = require('web3')
 const solc = require('solc')
-const { getRemoteCompiler } = require('./remoteCompiler.js')
-const {readFileCallback} = require('./utils.js')
+const { getRemoteCompiler } = require('./compiler/remoteCompiler.js')
+const {readFileCallback} = require('./compiler/utils.js')
 const path = require('path');
 
 /** CONST */
@@ -278,7 +278,7 @@ contract ${this.settings.templateContractName} {
                 input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
 
                 function readFileCallbackLambda(sourcePath) {
-                    return readFileCallback(sourcePath, {basePath: process.cwd(), includePath: [path.join(process.cwd(),"./node_modules/")]});
+                    return readFileCallback(sourcePath, {basePath: process.cwd(), includePath: [path.join(process.cwd(),"node_modules")]});
                 }
 
                 const callbacks = { 'import': readFileCallbackLambda };
