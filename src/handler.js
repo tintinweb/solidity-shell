@@ -7,6 +7,8 @@
 const Web3 = require('web3')
 const solc = require('solc')
 const { getRemoteCompiler } = require('./remoteCompiler.js')
+const {readFileCallback} = require('./utils.js')
+const path = require('path');
 
 /** CONST */
 const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
@@ -30,25 +32,26 @@ const SCOPE = {
 function getBestSolidityVersion(source) {
     var rx = /^pragma solidity (\^?[^;]+);$/gm;
     let allVersions = source.match(rx).map(e => {
-      try {
-        return e.match(/(\d+)\.(\d+)\.(\d+)/).splice(1,3).map(a => parseInt(a))
-      } catch {}
+        try {
+            return e.match(/(\d+)\.(\d+)\.(\d+)/).splice(1, 3).map(a => parseInt(a))
+        } catch { }
     })
-    let lastVersion = allVersions[allVersions.length-1];
-    if(!lastVersion){
+    let lastVersion = allVersions[allVersions.length - 1];
+    if (!lastVersion) {
         return undefined;
     }
     return `^${lastVersion.join('.')}`;
 }
+
 
 /** CLASS */
 class SolidityStatement {
 
     constructor(rawCommand, scope) {
         this.rawCommand = rawCommand ? rawCommand.trim() : "";
-        this.hasNoReturnValue = (rexAssign.test(this.rawCommand)) 
-            || (this.rawCommand.startsWith('delete')) 
-            || (this.rawCommand.startsWith('assembly')) 
+        this.hasNoReturnValue = (rexAssign.test(this.rawCommand))
+            || (this.rawCommand.startsWith('delete'))
+            || (this.rawCommand.startsWith('assembly'))
             || (this.rawCommand.startsWith('revert'))
             || (rexTypeDecl.test(this.rawCommand))
 
@@ -78,7 +81,7 @@ class SolidityStatement {
             } else {
                 this.scope = SCOPE.MAIN;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-                if(this.rawCommand===';'){
+                if (this.rawCommand === ';') {
                     this.hasNoReturnValue = true;
                 }
             }
@@ -134,7 +137,7 @@ class InteractiveSolidityShell {
         this.cache = {
             compiler: {} /** compilerVersion:object */
         }
-        
+
         this.cache.compiler[this.settings.installedSolidityVersion.startsWith("^") ? this.settings.installedSolidityVersion.substring(1) : this.settings.installedSolidityVersion] = solc;
         this.reset()
 
@@ -142,26 +145,26 @@ class InteractiveSolidityShell {
         this.blockchain.connect()
     }
 
-    loadSession(stmts){
-        if(!stmts) {
+    loadSession(stmts) {
+        if (!stmts) {
             this.session.statements = []
         } else {
             this.session.statements = stmts.map(s => new SolidityStatement(s[0], s[1]));
         }
     }
 
-    dumpSession(){
+    dumpSession() {
         return this.session.statements.map(s => s.toList());
     }
 
-    setSetting(key, value){
-        switch(key){
+    setSetting(key, value) {
+        switch (key) {
             case 'installedSolidityVersion': return;
             case 'ganacheArgs':
-                if(!value) {
+                if (!value) {
                     value = [];
                 }
-                else if(!Array.isArray(value)){
+                else if (!Array.isArray(value)) {
                     value = value.split(' ');
                 }
                 break;
@@ -194,10 +197,10 @@ class InteractiveSolidityShell {
         const lastVersionPragma = this.session.statements.filter(stm => stm.scope === SCOPE.VERSION_PRAGMA).pop();
 
         /* prepare body and return statement */
-        var lastStatement = this.session.statements[this.session.statements.length -1] || {}
-        if(lastStatement.scope !== SCOPE.MAIN || lastStatement.hasNoReturnValue === true){
+        var lastStatement = this.session.statements[this.session.statements.length - 1] || {}
+        if (lastStatement.scope !== SCOPE.MAIN || lastStatement.hasNoReturnValue === true) {
             /* not a main statement, put everything in the body and use a dummy as returnexpression */
-            var mainBody = mainStatements; 
+            var mainBody = mainStatements;
             lastStatement = new SolidityStatement() // add dummy w/o return value
         } else {
             var mainBody = mainStatements.slice(0, mainStatements.length - 1)
@@ -218,7 +221,7 @@ contract ${this.settings.templateContractName} {
         return ${lastStatement.returnExpression}
     }
 }`.trim();
-        if(this.settings.debugShowContract) this.log(ret)
+        if (this.settings.debugShowContract) this.log(ret)
         return ret;
     }
 
@@ -230,7 +233,7 @@ contract ${this.settings.templateContractName} {
         /** load remote version - (maybe cache?) */
 
         return new Promise((resolve, reject) => {
-            if(that.cache.compiler[solidityVersion]){
+            if (that.cache.compiler[solidityVersion]) {
                 return resolve(that.cache.compiler[solidityVersion]);
             }
 
@@ -245,15 +248,14 @@ contract ${this.settings.templateContractName} {
                     return reject(err)
                 })
         });
-        
+
     }
 
     compile(source, cbWarning) {
         let solidityVersion = getBestSolidityVersion(source);
-
         return new Promise((resolve, reject) => {
 
-            if(!solidityVersion){
+            if (!solidityVersion) {
                 return reject(new Error(`No valid solidity version found in source code (e.g. pragma solidity 0.8.10).`));
             }
             this.loadCachedCompiler(solidityVersion).then(solcSelected => {
@@ -274,8 +276,14 @@ contract ${this.settings.templateContractName} {
                     },
                 }
                 input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
-        
-                let ret = JSON.parse(solcSelected.compile(JSON.stringify(input)))
+
+                function readFileCallbackLambda(sourcePath) {
+                    return readFileCallback(sourcePath, {basePath: process.cwd(), includePath: [path.join(process.cwd(),"./node_modules/")]});
+                }
+
+                const callbacks = { 'import': readFileCallbackLambda };
+
+                let ret = JSON.parse(solcSelected.compile(JSON.stringify(input), callbacks))
                 if (ret.errors) {
                     let realErrors = ret.errors.filter(err => err.type !== 'Warning');
                     if (realErrors.length) {
@@ -283,22 +291,22 @@ contract ${this.settings.templateContractName} {
                     }
                     // print handle warnings
                     let warnings = ret.errors.filter(err => err.type === 'Warning' && !IGNORE_WARNINGS.some(target => err.message.includes(target)));
-                    if(warnings.length) cbWarning(warnings);
-        
+                    if (warnings.length) cbWarning(warnings);
+
                 }
                 return resolve(ret);
             })
-            .catch(err => {
-                return reject(err);
-            });
-    
+                .catch(err => {
+                    return reject(err);
+                });
+
 
         });
 
-     
-        
 
-        
+
+
+
     }
 
     run(statement) {
@@ -323,8 +331,8 @@ contract ${this.settings.templateContractName} {
                 })
             }).catch(errors => {
                 // frownie face
-                
-                if(!Array.isArray(errors)){ //handle single error
+
+                if (!Array.isArray(errors)) { //handle single error
                     this.revert();
                     return reject(errors);
                 }
@@ -393,7 +401,7 @@ class Blockchain {
         this.web3 = new Web3(this.provider);
 
         this.web3.eth.net.isListening().then().catch(err => {
-            if(!this.settings.autostartGanache){
+            if (!this.settings.autostartGanache) {
                 console.warn("⚠️  ganache autostart is disabled")
                 return;
             }
@@ -429,7 +437,7 @@ class Blockchain {
     async deploy(contracts, callback) {
         //sort deploy other contracts first
         Object.entries(contracts).sort((a, b) => a[1].main ? 10 : -1).forEach(([templateContractName, o]) => {
-            if(o.evm.bytecode.object.length === 0){
+            if (o.evm.bytecode.object.length === 0) {
                 return; //no bytecode, probably an interface
             }
 
@@ -444,22 +452,22 @@ class Blockchain {
 
             this.deployed[templateContractName] = thisContract;
             this.getAccounts()
-            .then(accounts => {
-                thisContract.accounts = accounts;
-                let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 3e6 })
-                thisContract.instance = instance;
-                return instance;
-            })
-            .then(contract => {
-                if (thisContract.main) {
-                    contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 3e6 }, callback);
-                }
-                return;
-            })
-            .catch(err => {
-                callback(`💥  ganache not yet ready. Please try again. (👉 ${err} 👈)`)
-            })
- 
+                .then(accounts => {
+                    thisContract.accounts = accounts;
+                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 3e6 })
+                    thisContract.instance = instance;
+                    return instance;
+                })
+                .then(contract => {
+                    if (thisContract.main) {
+                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 3e6 }, callback);
+                    }
+                    return;
+                })
+                .catch(err => {
+                    callback(`💥  ganache not yet ready. Please try again. (👉 ${err} 👈)`)
+                })
+
         }, this);
     }
 }

@@ -4,6 +4,8 @@
  * @license MIT
  * */
 
+const fs = require('fs');
+
 function convert(str){
     switch(str){
         case '': return undefined; 
@@ -34,7 +36,26 @@ function multilineInput(command){
     return command;
 }
 
+function readFileCallback(sourcePath, options) {
+    options = options || {};
+    const prefixes = [options.basePath ? options.basePath : ""].concat(
+        options.includePath ? options.includePath : []
+    );
+    for (const prefix of prefixes) {
+        const prefixedSourcePath = (prefix ? prefix + '/' : "") + sourcePath;
+        if (fs.existsSync(prefixedSourcePath)) {
+            try {
+                return { 'contents': fs.readFileSync(prefixedSourcePath).toString('utf8') }
+            } catch (e) {
+                return { error: 'Error reading ' + prefixedSourcePath + ': ' + e };
+            }
+        }
+    }
+    return { error: 'File not found inside the base path or any of the include paths.' }
+}
+
 module.exports = {
     convert,
-    multilineInput
+    multilineInput,
+    readFileCallback
 }

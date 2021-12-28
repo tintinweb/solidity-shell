@@ -2,6 +2,7 @@
 All notable changes will be documented in this file.
 
 ## v0.0.9
+- new: support the `import` directive - #8
 - fix: `localhost` alias may not be available on some systems - #9
 
 ## v0.0.8
