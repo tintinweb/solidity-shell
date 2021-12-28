@@ -3,6 +3,7 @@ All notable changes will be documented in this file.
 
 ## v0.0.9
 - new: support the `import` directive - #8
+  - new: experimental support for `https` imports, i.e. `import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/master/contracts/token/ERC721/IERC721.sol"`. This can be disabled by setting ` »  .config set resolveHttpImports false`.
 - fix: `localhost` alias may not be available on some systems - #9
 
 ## v0.0.8

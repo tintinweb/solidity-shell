@@ -40,6 +40,11 @@ Oh, did you know that we automatically fetch a matching remote compiler when you
 * Settings are saved on exit (not safe when running concurrent shells). call `config set <key> <value>` to change settings like ganache port, ganache autostart, etc.
 * `$_` is a placeholder for the last known result. Feel free to use that placeholder in your scripts :)
 * Special commands are dot-prefixed. Everything else is evaluated as Solidity code.
+* `import "<path>"` assumes that `path` is relative to the current working-dir (CWD) or `{CWD}/node_modules/`. There's experimental support for HTTPs URL's. You can disable https resolving by setting ` »  .config set resolveHttpImports false`.
+    
+```solidity
+ »  import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/master/contracts/token/ERC721/IERC721.sol"
+```
 
 
 ### Usage
