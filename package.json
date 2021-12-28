@@ -29,6 +29,7 @@
     "readline-sync": "^1.4.10",
     "request": "^2.88.2",
     "solc": "^0.8.10",
+    "sync-request": "^6.1.0",
     "vorpal": "^1.12.0",
     "web3": "^1.5.2"
   }

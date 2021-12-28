@@ -125,7 +125,8 @@ class InteractiveSolidityShell {
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
             ganacheArgs: [],
-            debugShowContract: false
+            debugShowContract: false,
+            resolveHttpImports: true,
         }
 
         this.settings = {
@@ -283,7 +284,8 @@ contract ${this.settings.templateContractName} {
                             basePath: process.cwd(), 
                             includePath: [
                                 path.join(process.cwd(), "node_modules")
-                            ]
+                            ],
+                            allowHttp: this.settings.resolveHttpImports
                         }
                     )
                 };
