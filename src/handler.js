@@ -277,11 +277,16 @@ contract ${this.settings.templateContractName} {
                 }
                 input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
 
-                function readFileCallbackLambda(sourcePath) {
-                    return readFileCallback(sourcePath, {basePath: process.cwd(), includePath: [path.join(process.cwd(),"node_modules")]});
-                }
-
-                const callbacks = { 'import': readFileCallbackLambda };
+                const callbacks = {
+                    'import': (sourcePath) => readFileCallback(
+                        sourcePath, {
+                            basePath: process.cwd(), 
+                            includePath: [
+                                path.join(process.cwd(), "node_modules")
+                            ]
+                        }
+                    )
+                };
 
                 let ret = JSON.parse(solcSelected.compile(JSON.stringify(input), callbacks))
                 if (ret.errors) {

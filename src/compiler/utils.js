@@ -8,10 +8,8 @@ const fs = require('fs');
 
 function readFileCallback(sourcePath, options) {
     options = options || {};
-    if(sourcePath.startsWith("https://")){
-        if(options.allowHttp){
-            
-        }
+    if(sourcePath.startsWith("https://") && options.allowHttp){
+        //allow https! imports; not yet implemented
     }
     else {
         const prefixes = [options.basePath ? options.basePath : ""].concat(
