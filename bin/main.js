@@ -16,7 +16,7 @@ const { convert, multilineInput } = require('../src/cli/utils');
 const CONFIG_HOME = path.join(os.homedir(), '.solidity-shell');
 const CONFIG_FILE = '.config';
 
-const REX_PLACEHOLDER = /(^|\s)(\$_)(\s|$)/ig /* LAST_KNOWN_RESULT placeholder */
+const REX_PLACEHOLDER = /(\$_)/ig /* LAST_KNOWN_RESULT placeholder */
 
 var LAST_KNOWN_RESULT = 'ss';
 var SESSION = 'previous.session';
@@ -82,7 +82,7 @@ vorpal
         let command = multilineInput(input);
 
         /* substitute placeholder: $_ */
-        command = command.replace(REX_PLACEHOLDER, ' ' + LAST_KNOWN_RESULT + ' ');
+        command = command.replace(REX_PLACEHOLDER, ' (' + LAST_KNOWN_RESULT + ') ');
 
         if (command.startsWith('.')) {
             let commandParts = command.split(' ');
