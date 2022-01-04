@@ -3,7 +3,7 @@ All notable changes will be documented in this file.
 
 ## v0.0.10
 - new: update to solc@0.8.11
-- new: basic autocomplete for built-ins - #11
+- new: basic autocomplete for built-ins (configurable via `.config`) - #11
 - fix: return value of unit constants (e.g. `2 ether`) - #12
 - fix: distinguish between/ autoguess const signed and unsigned int return values - #12
 - update: minor refactoring - #11
