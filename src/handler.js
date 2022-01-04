@@ -123,6 +123,7 @@ class InteractiveSolidityShell {
             ganacheArgs: [],
             debugShowContract: false,
             resolveHttpImports: true,
+            enableAutoComplete: true,
         }
 
         this.settings = {

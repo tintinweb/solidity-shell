@@ -229,10 +229,12 @@ vorpal
     .command("$_")
 
 /** autocomplate built-ins (not context sensitive) */
-for (let builtin of builtIns) {
-    vorpal  //register built-in as command (1st level autocomplete, with 2nd level autocomplete for params)
-        .command(`${builtin}`)
-        .autocomplete(builtIns);
+if(config.enableAutoComplete){
+    for (let builtin of builtIns) {
+        vorpal  //register built-in as command (1st level autocomplete, with 2nd level autocomplete for params)
+            .command(`${builtin}`)
+            .autocomplete(builtIns);
+    }
 }
 
 /** start in repl mode */
