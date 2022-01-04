@@ -13,7 +13,8 @@ const path = require('path');
 /** CONST */
 const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
 const rexAssign = /[^=]=[^=];?/;
-const rexTypeDecl = /^([\w\[\]]+\s(memory|storage)?\s*\w+);?$/
+const rexTypeDecl = /^([\w\[\]]+\s(memory|storage)?\s*\w+);?$/;
+const rexUnits = /^(\d+\s*(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years))\s*;?$/;
 const IGNORE_WARNINGS = [
     "Statement has no effect.",
     "Function state mutability can be restricted to ",
@@ -50,32 +51,26 @@ class SolidityStatement {
     constructor(rawCommand, scope) {
         this.rawCommand = rawCommand ? rawCommand.trim() : "";
         this.hasNoReturnValue = (rexAssign.test(this.rawCommand))
-            || (this.rawCommand.startsWith('delete'))
+            || (this.rawCommand.startsWith('delete '))
             || (this.rawCommand.startsWith('assembly'))
             || (this.rawCommand.startsWith('revert'))
-            || (rexTypeDecl.test(this.rawCommand))
+            || (rexTypeDecl.test(this.rawCommand) && !rexUnits.test(this.rawCommand))  /* looks like type decl but is not special builtin like "2 ether" */
 
         if (scope) {
-            this.scope = scope
+            this.scope = scope;
         } else {
-            if (this.rawCommand.startsWith('function ') || this.rawCommand.startsWith('modifier ')) {
-                this.scope = SCOPE.CONTRACT;
-                this.hasNoReturnValue = true;
-            } else if (this.rawCommand.startsWith('mapping ') || this.rawCommand.startsWith('event ') || this.rawCommand.startsWith('error ')) {
+            if (['function ', 'modifier ', 'mapping ', 'event ', 'error '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
             } else if (this.rawCommand.startsWith('pragma solidity ')) {
                 this.scope = SCOPE.VERSION_PRAGMA;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-            } else if (this.rawCommand.startsWith('pragma ') || this.rawCommand.startsWith('import ')) {
+            } else if (['pragma ', 'import '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-            } else if (this.rawCommand.startsWith('struct ')) {
-                this.scope = SCOPE.SOURCE_UNIT;
-                this.hasNoReturnValue = true;
-            } else if (this.rawCommand.startsWith('contract ') || this.rawCommand.startsWith('interface ')) {
+            } else if (['contract ', 'interface ', 'struct '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else {
@@ -86,6 +81,7 @@ class SolidityStatement {
                 }
             }
         }
+
 
         if (this.hasNoReturnValue) {
             // expression
@@ -127,6 +123,7 @@ class InteractiveSolidityShell {
             ganacheArgs: [],
             debugShowContract: false,
             resolveHttpImports: true,
+            enableAutoComplete: true,
         }
 
         this.settings = {
@@ -306,14 +303,7 @@ contract ${this.settings.templateContractName} {
                 .catch(err => {
                     return reject(err);
                 });
-
-
         });
-
-
-
-
-
     }
 
     run(statement) {
@@ -359,7 +349,9 @@ contract ${this.settings.templateContractName} {
 
                 //console.log("2nd pass - detect return type")
                 let retType = matches[1];
-                if (retType.startsWith('int_const ')) {
+                if (retType.startsWith('int_const -')) {
+                    retType = 'int';
+                } else if (retType.startsWith('int_const ')) {
                     retType = 'uint';
                 } else if (retType.startsWith('contract ')) {
                     retType = retType.split("contract ", 2)[1]
