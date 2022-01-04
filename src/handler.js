@@ -348,7 +348,9 @@ contract ${this.settings.templateContractName} {
 
                 //console.log("2nd pass - detect return type")
                 let retType = matches[1];
-                if (retType.startsWith('int_const ')) {
+                if (retType.startsWith('int_const -')) {
+                    retType = 'int';
+                } else if (retType.startsWith('int_const ')) {
                     retType = 'uint';
                 } else if (retType.startsWith('contract ')) {
                     retType = retType.split("contract ", 2)[1]
