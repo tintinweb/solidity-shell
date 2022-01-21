@@ -102,6 +102,7 @@ vorpal
  ${c.bold('General:')}
     .help                                ... this help :)
     .exit                                ... exit the shell
+    .restartblockchain                   ... restart the ganache blockchain service
 
  ${c.bold('Settings:')}
     .config                              ... show settings
@@ -128,6 +129,7 @@ cheers 🙌
 
                     break; //show usage
                 case '.exit': process.exit(); break; //exit -> no more cb()
+                case '.restartblockchain': shell.blockchain.restartService(); break; //restart ganache
                 case '.reset': shell.reset(); break; //reset complete state
                 case '.undo': shell.revert(); break; //revert last action
                 case '.config':
@@ -206,6 +208,8 @@ vorpal
 vorpal 
     .command(".exit")
     .alias("exit")
+vorpal
+    .command(".restartblockchain")
 vorpal 
     .command(".config")
     .autocomplete(["set","unset"])
