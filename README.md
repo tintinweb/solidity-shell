@@ -27,7 +27,7 @@ An interactive Solidity shell with lightweight session recording and remote comp
 352
 ```
 
-Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pgrama solidity 0.5.0` and solidity-shell will do the rest 🙌.
+Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pragma solidity 0.5.0` and solidity-shell will do the rest 🙌.
 
 
 

@@ -1,6 +1,11 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.0.11
+- new: configurable call and deploy gas
+- new: `.restartblockchain` command to restart ganache e.g. after config changes
+- fix: fixed returnval for some keywords
+
 ## v0.0.10
 - new: update to solc@0.8.11
 - new: basic autocomplete for built-ins (configurable via `.config`) - #11

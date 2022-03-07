@@ -122,10 +122,12 @@ class InteractiveSolidityShell {
             providerUrl: 'http://127.0.0.1:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
-            ganacheArgs: ['--gasLimit=999000000'], //add default gas limit: high enough to most code
+            ganacheArgs: [/*'--gasLimit=999000000'*/], //add default gas limit: high enough to most code
             debugShowContract: false,
             resolveHttpImports: true,
             enableAutoComplete: true,
+            callGas: 3e6,
+            deployGas: 3e6
         }
 
         this.settings = {
@@ -141,7 +143,7 @@ class InteractiveSolidityShell {
         this.cache.compiler[this.settings.installedSolidityVersion.startsWith("^") ? this.settings.installedSolidityVersion.substring(1) : this.settings.installedSolidityVersion] = solc;
         this.reset()
 
-        this.blockchain = new Blockchain(this.settings, this.log)
+        this.blockchain = new Blockchain(this)
         this.blockchain.connect()
     }
 
@@ -386,9 +388,9 @@ contract ${this.settings.templateContractName} {
 }
 
 class Blockchain {
-    constructor(settings, log) {
-        this.log = log;
-        this.settings = settings;
+    constructor(shell) {
+        this.log = shell.log;
+        this.shell = shell
 
         this.provider = undefined
         this.web3 = undefined
@@ -398,16 +400,16 @@ class Blockchain {
     }
 
     connect() {
-        this.provider = new Web3.providers.HttpProvider(this.settings.providerUrl);
+        this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
         this.web3 = new Web3(this.provider);
 
         this.web3.eth.net.isListening().then().catch(err => {
-            if (!this.settings.autostartGanache) {
+            if (!this.shell.settings.autostartGanache) {
                 console.warn("⚠️  ganache autostart is disabled")
                 return;
             }
             this.startService()
-            this.provider = new Web3.providers.HttpProvider(this.settings.providerUrl);
+            this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
             this.web3 = new Web3(this.provider);
         })
 
@@ -419,7 +421,7 @@ class Blockchain {
         }
         this.log("ℹ️  ganache-mgr: starting temp. ganache instance ...\n »");
         
-        this.proc = require('child_process').spawn(this.settings.ganacheCmd, this.settings.ganacheArgs);
+        this.proc = require('child_process').spawn(this.shell.settings.ganacheCmd, this.shell.settings.ganacheArgs);
         this.proc.on('error', function(err) {
             console.error(`
  🧨 Unable to launch blockchain serivce: ➜ ℹ️  ${err}
@@ -474,13 +476,13 @@ class Blockchain {
             this.getAccounts()
                 .then(accounts => {
                     thisContract.accounts = accounts;
-                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 30e6 })
+                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: this.shell.settings.deployGas })
                     thisContract.instance = instance;
                     return instance;
                 })
                 .then(contract => {
                     if (thisContract.main) {
-                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 30e6 }, callback);
+                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: this.shell.settings.callGas }, callback);
                     }
                     return;
                 })
