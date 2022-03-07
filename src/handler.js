@@ -123,7 +123,7 @@ class InteractiveSolidityShell {
             providerUrl: 'http://127.0.0.1:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
-            ganacheArgs: [/*'--gasLimit=999000000'*/], //add default gas limit: high enough to most code
+            ganacheArgs: [/*'--gasLimit=999000000'*/], //optionally increase default gas limit
             debugShowContract: false,
             resolveHttpImports: true,
             enableAutoComplete: true,
