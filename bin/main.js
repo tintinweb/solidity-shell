@@ -189,10 +189,15 @@ cheers 🙌
         /* REPL cmd */
         shell.run(statement).then(res => {
             if(!Array.isArray(res) && typeof res === 'object'){
-                return cb();
-            }
-            LAST_KNOWN_RESULT = res;
+                if(Object.keys(res).length === 0) {
+                    // empty response, hide
+                    return cb();
+                }
+                res = JSON.stringify(res); //stringify the result
+            } 
+            LAST_KNOWN_RESULT = res; // can only store last result for simple types
             cb(c.bold(c.yellow(res)));
+            
         }).catch(errors => {
             console.error(errors)
             cb()

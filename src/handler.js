@@ -315,9 +315,9 @@ contract ${this.settings.templateContractName} {
         return new Promise((resolve, reject) => {
             this.prepareNextStatement(statement)
 
-
+            const sourceCode = this.template();
             // 1st. pass
-            this.compile(this.template(), console.warn).then((res) => {
+            this.compile(sourceCode, console.warn).then((res) => {
                 // happy path; types are correct
                 //console.log("first happy path")
 
@@ -344,11 +344,11 @@ contract ${this.settings.templateContractName} {
                     this.revert();
                     return reject(errors);
                 }
-
+                let retType = ""
                 let matches = lastTypeError.message.match(rexTypeErrorReturnArgumentX);
                 if(matches){
                     //console.log("2nd pass - detect return type")
-                    var retType = matches[1];
+                    retType = matches[1];
                     if (retType.startsWith('int_const -')) {
                         retType = 'int';
                     } else if (retType.startsWith('int_const ')) {
@@ -356,11 +356,27 @@ contract ${this.settings.templateContractName} {
                     } else if (retType.startsWith('contract ')) {
                         retType = retType.split("contract ", 2)[1]
                     }
-                    console.log(matches)
                 } else if(lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
-                    console.error("BUG: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
-                    this.revert();
-                    return reject(errors);
+                    console.error("WARNING: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
+                    
+                    // lets give it a low-effort try to resolve return types. this will not always work.
+                    let rexFunctionName = new RegExp(`([a-zA-Z0-9_\\.]+)\\s*\\(.*?\\)`);
+                    let matchedFunctionNames = statement.rawCommand.match(rexFunctionName);
+                    if(matchedFunctionNames.length >= 1 ){
+                        let funcNameParts = matchedFunctionNames[1].split(".");
+                        let funcName = funcNameParts[funcNameParts.length-1]; //get last
+                        let rexReturns = new RegExp(`function ${funcName}\\s*\\(.* returns\\s*\\(([^\\)]+)\\)`)
+                        
+                        let returnDecl = sourceCode.match(rexReturns);
+                        if(returnDecl.length >1){
+                            retType = returnDecl[1];
+                        }
+                    }
+
+                    if(retType === ""){
+                        this.revert();
+                        return reject(errors);
+                    }
                 } else {
                     console.error("BUG: cannot resolve type ://")
                     this.revert();

@@ -5,6 +5,8 @@ All notable changes will be documented in this file.
 - new: configurable call and deploy gas
 - new: `.restartblockchain` command to restart ganache e.g. after config changes
 - fix: fixed returnval for some keywords
+- fix: show result for functions declaring multiple return vals
+- fix: naive fix to resolve function declarations for multi returnval function invocations.
 
 ## v0.0.10
 - new: update to solc@0.8.11
