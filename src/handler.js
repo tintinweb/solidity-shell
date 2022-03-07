@@ -11,7 +11,7 @@ const {readFileCallback} = require('./compiler/utils.js')
 const path = require('path');
 
 /** CONST */
-const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
+const rexTypeErrorReturnArgumentX = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
 const rexAssign = /[^=]=[^=];?/;
 const rexTypeDecl = /^([\w\[\]]+\s(memory|storage)?\s*\w+);?$/;
 const rexUnits = /^(\d+\s*(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years))\s*;?$/;
@@ -19,7 +19,8 @@ const IGNORE_WARNINGS = [
     "Statement has no effect.",
     "Function state mutability can be restricted to ",
     "Unused local variable."
-]
+];
+const TYPE_ERROR_DETECT_RETURNS = "Different number of arguments in return statement than in returns declaration."
 
 const SCOPE = {
     CONTRACT: 1,  /* statement in contract scope */
@@ -344,22 +345,28 @@ contract ${this.settings.templateContractName} {
                     return reject(errors);
                 }
 
-                let matches = lastTypeError.message.match(rexTypeError);
-                if (!matches) {
+                let matches = lastTypeError.message.match(rexTypeErrorReturnArgumentX);
+                if(matches){
+                    //console.log("2nd pass - detect return type")
+                    var retType = matches[1];
+                    if (retType.startsWith('int_const -')) {
+                        retType = 'int';
+                    } else if (retType.startsWith('int_const ')) {
+                        retType = 'uint';
+                    } else if (retType.startsWith('contract ')) {
+                        retType = retType.split("contract ", 2)[1]
+                    }
+                    console.log(matches)
+                } else if(lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
+                    console.error("BUG: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
+                    this.revert();
+                    return reject(errors);
+                } else {
                     console.error("BUG: cannot resolve type ://")
                     this.revert();
                     return reject(errors);
                 }
-
-                //console.log("2nd pass - detect return type")
-                let retType = matches[1];
-                if (retType.startsWith('int_const -')) {
-                    retType = 'int';
-                } else if (retType.startsWith('int_const ')) {
-                    retType = 'uint';
-                } else if (retType.startsWith('contract ')) {
-                    retType = retType.split("contract ", 2)[1]
-                }
+                
                 this.session.statements[this.session.statements.length - 1].returnType = retType;
 
                 //try again!
