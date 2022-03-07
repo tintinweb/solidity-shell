@@ -72,20 +72,22 @@ BNB
 #### Repl
 
 ```shell
- 🚀 Entering interactive Solidity shell. '.help' and '.exit' are your friends.
+🚀 Entering interactive Solidity ^0.8.11 shell. '.help' and '.exit' are your friends.
  »  ℹ️  ganache-mgr: starting temp. ganache instance ...
  »
- »   .help
+ »  .help
 
 📚 Help:
    -----
 
  $_ is a placeholder holding the most recent evaluation result.
+ pragma solidity <version> to change the compiler version.
 
 
  General:
     .help                                ... this help :)
     .exit                                ... exit the shell
+    .restartblockchain                   ... restart the ganache blockchain service
 
  Settings:
     .config                              ... show settings
@@ -95,11 +97,10 @@ BNB
     .session                             ... list sessions
             load <id>                    ... load session
             save <id>                    ... save session
-            
     .undo                                ... undo last command
     .reset                               ... reset cmd history. start from scratch.
 
- Debug::
+ Debug:
     .proc                                ... show processes managed by solidity-shell (ganache)
     .dump                                ... show template contract
     .echo                                ... every shell needs an echo command
