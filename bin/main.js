@@ -102,6 +102,7 @@ vorpal
  ${c.bold('General:')}
     .help                                ... this help :)
     .exit                                ... exit the shell
+    .restartblockchain                   ... restart the ganache blockchain service
 
  ${c.bold('Settings:')}
     .config                              ... show settings
@@ -128,6 +129,7 @@ cheers 🙌
 
                     break; //show usage
                 case '.exit': process.exit(); break; //exit -> no more cb()
+                case '.restartblockchain': shell.blockchain.restartService(); break; //restart ganache
                 case '.reset': shell.reset(); break; //reset complete state
                 case '.undo': shell.revert(); break; //revert last action
                 case '.config':
@@ -187,10 +189,15 @@ cheers 🙌
         /* REPL cmd */
         shell.run(statement).then(res => {
             if(!Array.isArray(res) && typeof res === 'object'){
-                return cb();
-            }
-            LAST_KNOWN_RESULT = res;
+                if(Object.keys(res).length === 0) {
+                    // empty response, hide
+                    return cb();
+                }
+                res = JSON.stringify(res); //stringify the result
+            } 
+            LAST_KNOWN_RESULT = res; // can only store last result for simple types
             cb(c.bold(c.yellow(res)));
+            
         }).catch(errors => {
             console.error(errors)
             cb()
@@ -206,6 +213,8 @@ vorpal
 vorpal 
     .command(".exit")
     .alias("exit")
+vorpal
+    .command(".restartblockchain")
 vorpal 
     .command(".config")
     .autocomplete(["set","unset"])

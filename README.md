@@ -27,13 +27,14 @@ An interactive Solidity shell with lightweight session recording and remote comp
 352
 ```
 
-Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pgrama solidity 0.5.0` and solidity-shell will do the rest 🙌.
+Oh, did you know that we automatically fetch a matching remote compiler when you change the solidity pragma? It is as easy as typing `pragma solidity 0.5.0` and solidity-shell will do the rest 🙌.
 
 
 
 ### Hints
 
 * `pragma solidity <version>` attempts to dynamically load the selected compiler version (remote compiler, may take a couple of seconds).
+* use `{ <statement>; }` to ignore a calls return value. 
 * Sessions can be saved and restored using the `.session` command. Your previous session is always stored and can be loaded via `.session load previous` (not safe when running concurrent shells).
 * `.reset` completely removes all statements. `.undo` removes the last statement.
 * See what's been generated under the hood? call `.dump`.

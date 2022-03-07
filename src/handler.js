@@ -11,7 +11,7 @@ const {readFileCallback} = require('./compiler/utils.js')
 const path = require('path');
 
 /** CONST */
-const rexTypeError = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
+const rexTypeErrorReturnArgumentX = /Return argument type (.*) is not implicitly convertible to expected type \(type of first return variable\)/;
 const rexAssign = /[^=]=[^=];?/;
 const rexTypeDecl = /^([\w\[\]]+\s(memory|storage)?\s*\w+);?$/;
 const rexUnits = /^(\d+\s*(wei|gwei|szabo|finney|ether|seconds|minutes|hours|days|weeks|years))\s*;?$/;
@@ -19,7 +19,8 @@ const IGNORE_WARNINGS = [
     "Statement has no effect.",
     "Function state mutability can be restricted to ",
     "Unused local variable."
-]
+];
+const TYPE_ERROR_DETECT_RETURNS = "Different number of arguments in return statement than in returns declaration."
 
 const SCOPE = {
     CONTRACT: 1,  /* statement in contract scope */
@@ -54,6 +55,8 @@ class SolidityStatement {
             || (this.rawCommand.startsWith('delete '))
             || (this.rawCommand.startsWith('assembly'))
             || (this.rawCommand.startsWith('revert'))
+            || (this.rawCommand.startsWith('unchecked '))
+            || (this.rawCommand.startsWith('{'))
             || (rexTypeDecl.test(this.rawCommand) && !rexUnits.test(this.rawCommand))  /* looks like type decl but is not special builtin like "2 ether" */
 
         if (scope) {
@@ -120,10 +123,12 @@ class InteractiveSolidityShell {
             providerUrl: 'http://127.0.0.1:8545',
             autostartGanache: true,
             ganacheCmd: 'ganache-cli',
-            ganacheArgs: [],
+            ganacheArgs: [/*'--gasLimit=999000000'*/], //optionally increase default gas limit
             debugShowContract: false,
             resolveHttpImports: true,
             enableAutoComplete: true,
+            callGas: 3e6,
+            deployGas: 3e6
         }
 
         this.settings = {
@@ -139,7 +144,7 @@ class InteractiveSolidityShell {
         this.cache.compiler[this.settings.installedSolidityVersion.startsWith("^") ? this.settings.installedSolidityVersion.substring(1) : this.settings.installedSolidityVersion] = solc;
         this.reset()
 
-        this.blockchain = new Blockchain(this.settings, this.log)
+        this.blockchain = new Blockchain(this)
         this.blockchain.connect()
     }
 
@@ -310,9 +315,9 @@ contract ${this.settings.templateContractName} {
         return new Promise((resolve, reject) => {
             this.prepareNextStatement(statement)
 
-
+            const sourceCode = this.template();
             // 1st. pass
-            this.compile(this.template(), console.warn).then((res) => {
+            this.compile(sourceCode, console.warn).then((res) => {
                 // happy path; types are correct
                 //console.log("first happy path")
 
@@ -339,23 +344,45 @@ contract ${this.settings.templateContractName} {
                     this.revert();
                     return reject(errors);
                 }
+                let retType = ""
+                let matches = lastTypeError.message.match(rexTypeErrorReturnArgumentX);
+                if(matches){
+                    //console.log("2nd pass - detect return type")
+                    retType = matches[1];
+                    if (retType.startsWith('int_const -')) {
+                        retType = 'int';
+                    } else if (retType.startsWith('int_const ')) {
+                        retType = 'uint';
+                    } else if (retType.startsWith('contract ')) {
+                        retType = retType.split("contract ", 2)[1]
+                    }
+                } else if(lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
+                    console.error("WARNING: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
+                    
+                    // lets give it a low-effort try to resolve return types. this will not always work.
+                    let rexFunctionName = new RegExp(`([a-zA-Z0-9_\\.]+)\\s*\\(.*?\\)`);
+                    let matchedFunctionNames = statement.rawCommand.match(rexFunctionName);
+                    if(matchedFunctionNames.length >= 1 ){
+                        let funcNameParts = matchedFunctionNames[1].split(".");
+                        let funcName = funcNameParts[funcNameParts.length-1]; //get last
+                        let rexReturns = new RegExp(`function ${funcName}\\s*\\(.* returns\\s*\\(([^\\)]+)\\)`)
+                        
+                        let returnDecl = sourceCode.match(rexReturns);
+                        if(returnDecl.length >1){
+                            retType = returnDecl[1];
+                        }
+                    }
 
-                let matches = lastTypeError.message.match(rexTypeError);
-                if (!matches) {
+                    if(retType === ""){
+                        this.revert();
+                        return reject(errors);
+                    }
+                } else {
                     console.error("BUG: cannot resolve type ://")
                     this.revert();
                     return reject(errors);
                 }
-
-                //console.log("2nd pass - detect return type")
-                let retType = matches[1];
-                if (retType.startsWith('int_const -')) {
-                    retType = 'int';
-                } else if (retType.startsWith('int_const ')) {
-                    retType = 'uint';
-                } else if (retType.startsWith('contract ')) {
-                    retType = retType.split("contract ", 2)[1]
-                }
+                
                 this.session.statements[this.session.statements.length - 1].returnType = retType;
 
                 //try again!
@@ -384,9 +411,9 @@ contract ${this.settings.templateContractName} {
 }
 
 class Blockchain {
-    constructor(settings, log) {
-        this.log = log;
-        this.settings = settings;
+    constructor(shell) {
+        this.log = shell.log;
+        this.shell = shell
 
         this.provider = undefined
         this.web3 = undefined
@@ -396,17 +423,16 @@ class Blockchain {
     }
 
     connect() {
-        this.provider = new Web3.providers.HttpProvider(this.settings.providerUrl);
+        this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
         this.web3 = new Web3(this.provider);
 
         this.web3.eth.net.isListening().then().catch(err => {
-            if (!this.settings.autostartGanache) {
+            if (!this.shell.settings.autostartGanache) {
                 console.warn("⚠️  ganache autostart is disabled")
                 return;
             }
-            console.log("ℹ️  ganache-mgr: starting temp. ganache instance ...\n »")
             this.startService()
-            this.provider = new Web3.providers.HttpProvider(this.settings.providerUrl);
+            this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
             this.web3 = new Web3(this.provider);
         })
 
@@ -416,12 +442,32 @@ class Blockchain {
         if (this.proc) {
             return this.proc;
         }
-        this.proc = require('child_process').spawn(this.settings.ganacheCmd, this.settings.ganacheArgs);
+        this.log("ℹ️  ganache-mgr: starting temp. ganache instance ...\n »");
+        
+        this.proc = require('child_process').spawn(this.shell.settings.ganacheCmd, this.shell.settings.ganacheArgs);
+        this.proc.on('error', function(err) {
+            console.error(`
+ 🧨 Unable to launch blockchain serivce: ➜ ℹ️  ${err}
+
+    Please verify that 'ganache-cli' (or similar service) is installed and available in your PATH.
+    Otherwise, you can disable autostart by setting 'autostartGanache' to false in your settings or configure a different service and '.restartblockchain'.
+    `);
+          });
+        
+        
     }
 
     stopService() {
-        this.log("💀  ganache-mgr: stopping temp. ganache instance")
-        this.proc && this.proc.kill('SIGINT');
+        this.log("💀  ganache-mgr: stopping temp. ganache instance");
+        if(this.proc) {
+            this.proc.kill('SIGINT');
+            this.proc = undefined;
+        }
+    }
+
+    restartService() {
+        this.stopService();
+        this.startService();
     }
 
     getAccounts() {
@@ -453,13 +499,13 @@ class Blockchain {
             this.getAccounts()
                 .then(accounts => {
                     thisContract.accounts = accounts;
-                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: 3e6 })
+                    let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: this.shell.settings.deployGas })
                     thisContract.instance = instance;
                     return instance;
                 })
                 .then(contract => {
                     if (thisContract.main) {
-                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: 3e6 }, callback);
+                        contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: this.shell.settings.callGas }, callback);
                     }
                     return;
                 })
