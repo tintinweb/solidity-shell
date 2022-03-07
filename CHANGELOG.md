@@ -8,6 +8,8 @@ All notable changes will be documented in this file.
 - fix: show result for functions declaring multiple return vals
 - fix: naive fix to resolve function declarations for multi returnval function invocations.
 
+<img width="670" alt="image" src="https://user-images.githubusercontent.com/2865694/157049887-d8e8f763-94e4-43fa-bf23-042e2bbe90d9.png">
+
 ## v0.0.10
 - new: update to solc@0.8.11
 - new: basic autocomplete for built-ins (configurable via `.config`) - #11
