@@ -172,7 +172,7 @@ cheers 🙌
                                 //fork-url
                                 shell.settings.ganacheOptions.fork = {url: commandParts[3]}
                             } else {
-                                shell.settings.ganacheOptions.fork = {url: undefined}
+                                delete shell.settings.ganacheOptions.fork
                             }
                             shell.initBlockchain();
                             this.log(`  ✨ '${shell.blockchain.name}' initialized.`)
