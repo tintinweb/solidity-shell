@@ -77,7 +77,7 @@ vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
     .delimiter(c.bold('» '))
     .init(function (args, cb) {
-        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell. '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
+        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
         return cb();
     })
     .action(function (input, cb) {
