@@ -24,7 +24,7 @@ class AbsBlockchainBase {
         this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
         this.web3 = new Web3(this.provider);
 
-        this.web3.eth.net.isListening().then().catch(err => {
+        this.web3.eth.getAccounts().then().catch(err => {
             if (!this.shell.settings.autostartGanache) {
                 console.warn("⚠️  ganache autostart is disabled")
                 return;
@@ -54,6 +54,23 @@ class AbsBlockchainBase {
                 if (err) return reject(new Error(err));
                 return resolve(result);
             })
+        });
+    }
+    
+    methodCall(cmd, args) {
+        return new Promise((resolve, reject) => {
+            let func = this.web3.eth[cmd];
+            if(func === undefined) {
+                return reject("  🧨 Unsupported Method");
+            }
+            if(typeof func === "function"){
+                func((err, result) => {
+                    if (err) return reject(new Error(err));
+                    return resolve(result);
+                });
+            } else {
+                return resolve(func);
+            }
         });
     }
 
@@ -118,25 +135,69 @@ class BuiltinGanacheBlockchain extends AbsBlockchainBase {
 
     connect() {
         this.startService();
+
         this.web3 = new Web3(this.provider);
+
+        this.web3.eth.getAccounts().then().catch(err => {
+            if (!this.shell.settings.autostartGanache) {
+                console.warn("⚠️  ganache autostart is disabled")
+                return;
+            }
+            this.startService()
+            this.provider = new Web3.providers.HttpProvider(this.shell.settings.providerUrl);
+            this.web3 = new Web3(this.provider);
+        });
+
+        
     }
 
     startService() {
         if (this.provider !== undefined) {
             return this.provider;
         }
-        this.provider = ganache.provider(this.options);
         
+        this.provider = ganache.provider(this.options);
     }
     stopService() {
         this.provider = undefined;
     }
 }
 
+
+class ExternalUrlBlockchain extends AbsBlockchainBase {
+
+    constructor(shell, providerUrl) {
+        super(shell, "Ganache url-provider");
+        this.providerUrl = providerUrl;
+    }
+
+    connect() {
+        this.provider = new Web3.providers.HttpProvider(this.providerUrl);
+        this.web3 = new Web3(this.provider);
+
+        this.web3.eth.getAccounts().then().catch(err => {
+            if (!this.shell.settings.autostartGanache) {
+                console.warn("⚠️  ganache autostart is disabled")
+                return;
+            }
+            this.startService()
+            this.provider = new Web3.providers.HttpProvider(this.providerUrl);
+            this.web3 = new Web3(this.provider);
+        })
+    }
+
+    startService() {
+        // NOP
+    }
+    stopService() {
+        // NOP
+    }
+}
+
 class ExternalProcessBlockchain extends AbsBlockchainBase {
 
     constructor(shell) {
-        super(shell, "Ganache ext proc");
+        super(shell, "Ganache ext-proc");
     }
 
     startService() {
@@ -165,7 +226,10 @@ class ExternalProcessBlockchain extends AbsBlockchainBase {
     }
 }
 
+
+
 module.exports = {
     ExternalProcessBlockchain,
+    ExternalUrlBlockchain,
     BuiltinGanacheBlockchain
 }

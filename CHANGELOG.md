@@ -1,6 +1,20 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.1.0
+
+⚠️ breaking changes: now ships with internal ganache provider. use `.chain set-provider` to configer chain provider.
+
+- new: ship with built-in ganache provider
+- new: `.chain` subcommand
+  - `.chain restart` - restarts the service (formerly known as `.restartblockchain`)
+  - `.chain set-provider [fork-url]` - switch between the internal or an external `ganache-cli` command or url-provider. Optionally specify a ganache fork-url.
+    - ` .chain set-provider internal https://mainnet.infura.io/v3/yourApiKey `
+  - `.chain accounts` - show ganache accounts
+  - `.chain <X>` - arbitrary method calls on `web3.eth.<X>()`
+- new: override fork url using `--fork` e.g. `solidity-shell --fork https://mainnet.infura.io/v3/yourApiKey`
+- fix: better error handling. don't save config changes when a dirty application exit was detected (i.e. app throws) 
+
 ## v0.0.11
 - new: configurable call and deploy gas
 - new: `.restartblockchain` command to restart ganache e.g. after config changes

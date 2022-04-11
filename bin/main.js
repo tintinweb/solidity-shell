@@ -46,9 +46,24 @@ function saveFile(name, data){
 /** MAIN */
 const argv = require('minimist')(process.argv, {'--': true});
 var config = loadFile(CONFIG_FILE);
-const oldGanacheArgs = config.ganacheArgs;
+
+const oldConf = {
+    ganacheArgs: config.ganacheArgs,
+    ganacheOptions: config.ganacheOptions
+}
+
 if(argv['--'].length){ // temporarily override ganache args
     config.ganacheArgs = argv['--'];
+}
+if(argv['fork']){
+    config.ganacheOptions.fork = {url: argv['fork']}
+}
+if(argv['reset-config']){
+    config = {};
+}
+if(argv['show-config-file']){
+    console.log(path.join(CONFIG_HOME, CONFIG_FILE));
+    process.exit(0);
 }
 
 const shell = new InteractiveSolidityShell(config);
@@ -56,10 +71,19 @@ const shell = new InteractiveSolidityShell(config);
 process.on('exit', () => { 
     shell.blockchain.stopService(); 
     if(argv['--'].length){ //restore old ganache args
-        shell.settings.ganacheArgs = oldGanacheArgs;
+        shell.settings.ganacheArgs = oldConf.ganacheArgs;
+    }
+    if(argv['fork']){
+        shell.settings.ganacheOptions.fork = oldConf.ganacheOptions.fork;
+    }
+    saveFile(SESSION, shell.dumpSession())
+
+    // exit if dirty exit detected
+    if(process.exitCode!=0){
+        console.log("🧨  not saving config due to dirty shutdown.")
+        return;
     }
     saveFile(CONFIG_FILE, shell.settings)
-    saveFile(SESSION, shell.dumpSession())
 });
 
 const vorpal = new Vorpal()
@@ -102,7 +126,14 @@ vorpal
  ${c.bold('General:')}
     .help                                ... this help :)
     .exit                                ... exit the shell
-    .restartblockchain                   ... restart the ganache blockchain service
+
+${c.bold('Blockchain:')}
+    .chain                         
+            restart                      ... restart the blockchain service
+            set-provider <fork-url>      ... "internal" | <shell-command: e.g. ganache-cli> | <https://localhost:8545>
+                                            - fork url e.g. https://mainnet.infura.io/v3/yourApiKey  
+            accounts                     ... return eth_getAccounts
+            <X>                          ... return web3.eth.<X>()
 
  ${c.bold('Settings:')}
     .config                              ... show settings
@@ -129,7 +160,37 @@ cheers 🙌
 
                     break; //show usage
                 case '.exit': process.exit(); break; //exit -> no more cb()
-                case '.restartblockchain': shell.blockchain.restartService(); break; //restart ganache
+                case '.chain': 
+                    switch(commandParts[1]){
+                        case 'restart': 
+                            shell.blockchain.restartService(); 
+                            this.log(`  ✨ '${shell.blockchain.name}' blockchain provider restarted.`)
+                            break;
+                        case 'set-provider':
+                            shell.settings.blockchainProvider = commandParts[2];
+                            if(commandParts.length > 3){
+                                //fork-url
+                                shell.settings.ganacheOptions.fork = {url: commandParts[3]}
+                            } else {
+                                shell.settings.ganacheOptions.fork = {url: undefined}
+                            }
+                            shell.initBlockchain();
+                            this.log(`  ✨ '${shell.blockchain.name}' initialized.`)
+                            break;
+                        case 'accounts':
+                            shell.blockchain.getAccounts().then(acc => {
+                                this.log(`\n   🧝‍ ${acc.join('\n   🧝 ')}\n`)
+                                
+                            })
+                            break;
+                        default:
+                            shell.blockchain.methodCall(commandParts[1]).then(res => {
+                                this.log(res);
+                            }).catch(e => { this.log(e)})
+                            break;
+                    }
+                    
+                    break; //restart ganache
                 case '.reset': shell.reset(); break; //reset complete state
                 case '.undo': shell.revert(); break; //revert last action
                 case '.config':
@@ -214,7 +275,8 @@ vorpal
     .command(".exit")
     .alias("exit")
 vorpal
-    .command(".restartblockchain")
+    .command(".chain")
+    .autocomplete(["restart","set-provider","accounts", "getAccounts"])
 vorpal 
     .command(".config")
     .autocomplete(["set","unset"])

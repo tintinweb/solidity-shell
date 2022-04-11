@@ -9,7 +9,7 @@ const Web3 = require('web3');
 const solc = require('solc');
 const { getRemoteCompiler } = require('./compiler/remoteCompiler.js');
 const { readFileCallback } = require('./compiler/utils.js');
-const { ExternalProcessBlockchain, BuiltinGanacheBlockchain } = require('./blockchain.js');
+const { ExternalProcessBlockchain, ExternalUrlBlockchain ,BuiltinGanacheBlockchain } = require('./blockchain.js');
 
 
 /** CONST */
@@ -124,7 +124,8 @@ class InteractiveSolidityShell {
             installedSolidityVersion: null, // overridden after merging settings; never use configured value
             providerUrl: 'http://127.0.0.1:8545',
             autostartGanache: true,
-            ganacheMode: 'internal',
+            blockchainProvider: 'internal',
+            ganacheOptions: {},
             ganacheCmd: 'ganache-cli',
             ganacheArgs: [/*'--gasLimit=999000000'*/], //optionally increase default gas limit
             debugShowContract: false,
@@ -147,14 +148,25 @@ class InteractiveSolidityShell {
         this.cache.compiler[this.settings.installedSolidityVersion.startsWith("^") ? this.settings.installedSolidityVersion.substring(1) : this.settings.installedSolidityVersion] = solc;
         this.reset();
 
-        switch(this.settings.ganacheMode){
-            case "externalCmd": 
-                this.blockchain = new ExternalProcessBlockchain(this);
-                break;
-            default:
-                this.blockchain = new BuiltinGanacheBlockchain(this);
+        this.initBlockchain();
+    }
+
+    initBlockchain() {
+        if(this.blockchain){
+            this.blockchain.stopService();
         }
 
+        if(!this.settings.blockchainProvider || this.settings.blockchainProvider === "internal"){
+            this.blockchain = new BuiltinGanacheBlockchain(this);
+        } else if(this.settings.blockchainProvider.startsWith("https://") || this.settings.blockchainProvider.startsWith("http://")) {
+            this.blockchain = new ExternalUrlBlockchain(this, this.settings.blockchainProvider);
+        } else if (this.settings.blockchainProvider.length > 0) {
+            this.settings.ganacheCmd = this.settings.blockchainProvider;
+            this.blockchain = new ExternalProcessBlockchain(this);
+        } else {
+            this.log("  🧨 unknown blockchain provider. falling back to built-in ganache.")
+            this.blockchain = new BuiltinGanacheBlockchain(this);
+        }
         this.blockchain.connect();
     }
 
