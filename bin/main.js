@@ -161,6 +161,9 @@ cheers 🙌
                     break; //show usage
                 case '.exit': process.exit(); break; //exit -> no more cb()
                 case '.chain': 
+                    if(!commandParts[1]){
+                        break;
+                    }
                     switch(commandParts[1]){
                         case 'restart': 
                             shell.blockchain.restartService(); 
@@ -184,9 +187,10 @@ cheers 🙌
                             })
                             break;
                         default:
-                            shell.blockchain.methodCall(commandParts[1]).then(res => {
-                                this.log(res);
-                            }).catch(e => { this.log(e)})
+                            if(commandParts[1].startsWith("eth_")){
+                                shell.blockchain.rpcCall(commandParts[1], commandParts.slice(2)).then(res => this.log(res)).catch(e => this.log(e))
+                            }
+                            
                             break;
                     }
                     

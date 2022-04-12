@@ -74,6 +74,23 @@ class AbsBlockchainBase {
         });
     }
 
+    rpcCall(method, params){
+        return new Promise((resolve, reject) => {
+            let payload = {
+                "jsonrpc":"2.0",
+                "method":method,
+                "params":params === undefined ? [] : params,
+                "id":1
+            }
+            this.provider.send(payload, (error, result) => {
+                if(error)
+                    return reject(error);
+                return resolve(result);
+            });
+        });
+        
+    }
+
     async deploy(contracts, callback) {
         //sort deploy other contracts first
         Object.entries(contracts).sort((a, b) => a[1].main ? 10 : -1).forEach(([templateContractName, o]) => {
