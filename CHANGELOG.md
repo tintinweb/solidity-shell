@@ -11,7 +11,8 @@ All notable changes will be documented in this file.
   - `.chain set-provider [fork-url]` - switch between the internal or an external `ganache-cli` command or url-provider. Optionally specify a ganache fork-url.
     - ` .chain set-provider internal https://mainnet.infura.io/v3/yourApiKey `
   - `.chain accounts` - show ganache accounts
-  - `.chain <X>` - arbitrary method calls on `web3.eth.<X>()`
+  - `.chain eth_<X> [args...]` - arbitrary eth JSONrpc method calls to blockchain provider.
+    - e.g. `.chain eth_accounts` returns the blockchain providers response to the `eth_accounts` JSONrpc call.
 - new: command line switches:
   - `--fork` overrides fork-url option for internal ganache provider `solidity-shell --fork https://mainnet.infura.io/v3/yourApiKey`.
   - `--reset-config` resets the config file.
