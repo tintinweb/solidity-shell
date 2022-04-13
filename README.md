@@ -91,7 +91,7 @@ BNB
             set-provider <fork-url>      ... "internal" | <shell-command: e.g. ganache-cli> | <https://localhost:8545>
                                             - fork url e.g. https://mainnet.infura.io/v3/yourApiKey  
             accounts                     ... return eth_getAccounts
-            <X>                          ... return web3.eth.<X>()
+            eth_<X> [...args]            ... initiate an arbitrary eth JSONrpc method call to blockchain provider.
 
  Settings:
     .config                              ... show settings
