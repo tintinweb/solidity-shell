@@ -3,7 +3,7 @@ All notable changes will be documented in this file.
 
 ## v0.1.0
 
-⚠️ breaking changes: `solidity-shell` now ships with ganache. use `.chain set-provider` to switch chain providers.
+⚠️ pot. breaking changes: `solidity-shell` now ships with ganache. use `.chain set-provider` to switch chain providers. the `built-in` ganache provider is used by default.
 
 - new: built in ganache provider
 - new: `.chain` subcommand
