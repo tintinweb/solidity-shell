@@ -10,9 +10,6 @@ An interactive Solidity shell with lightweight session recording and remote comp
 
 [💾](https://www.npmjs.com/package/solidity-shell) `npm install -g solidity-shell` 
 
-<sub><b>note:</b> requires `npm install -g ganache-cli` unless it is already installed :)
-</sub>
-
 ```javascript
 ⇒  solidity-shell
  
@@ -87,7 +84,14 @@ BNB
  General:
     .help                                ... this help :)
     .exit                                ... exit the shell
-    .restartblockchain                   ... restart the ganache blockchain service
+
+ Blockchain:
+    .chain                         
+            restart                      ... restart the blockchain service
+            set-provider <fork-url>      ... "internal" | <shell-command: e.g. ganache-cli> | <https://localhost:8545>
+                                            - fork url e.g. https://mainnet.infura.io/v3/yourApiKey  
+            accounts                     ... return eth_getAccounts
+            <X>                          ... return web3.eth.<X>()
 
  Settings:
     .config                              ... show settings
@@ -110,6 +114,7 @@ cheers 🙌
     @tintinweb 
     ConsenSys Diligence @ https://consensys.net/diligence/
     https://github.com/tintinweb/solidity-shell/ 
+
 ```
 
 ## Examples 
