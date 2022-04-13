@@ -127,7 +127,7 @@ vorpal
     .help                                ... this help :)
     .exit                                ... exit the shell
 
-${c.bold('Blockchain:')}
+ ${c.bold('Blockchain:')}
     .chain                         
             restart                      ... restart the blockchain service
             set-provider <fork-url>      ... "internal" | <shell-command: e.g. ganache-cli> | <https://localhost:8545>
