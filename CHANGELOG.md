@@ -11,6 +11,7 @@ All notable changes will be documented in this file.
  »  uint8(FreshJuiceSize.LARGE)
  2
   ```
+- fix: case insensitive bool match for `.config set <var> True|False|true|false`
 - update: dependencies
 
 ## v0.1.0
