@@ -75,7 +75,7 @@ class SolidityStatement {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-            } else if (['contract ', 'interface ', 'struct '].some(e => this.rawCommand.startsWith(e))) {
+            } else if (['contract ', 'interface ', 'struct ', 'enum '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else {
