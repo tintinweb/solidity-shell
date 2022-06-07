@@ -22,7 +22,7 @@ const IGNORE_WARNINGS = [
     "Function state mutability can be restricted to ",
     "Unused local variable."
 ];
-const TYPE_ERROR_DETECT_RETURNS = "Different number of arguments in return statement than in returns declaration."
+const TYPE_ERROR_DETECT_RETURNS = 'Different number of arguments in return statement than in returns declaration.';
 
 const SCOPE = {
     CONTRACT: 1,  /* statement in contract scope */
@@ -355,7 +355,6 @@ contract ${this.settings.templateContractName} {
                 })
             }).catch(errors => {
                 // frownie face
-
                 if (!Array.isArray(errors)) { //handle single error
                     this.revert();
                     return reject(errors);
@@ -370,17 +369,24 @@ contract ${this.settings.templateContractName} {
                 let matches = lastTypeError.message.match(rexTypeErrorReturnArgumentX);
                 if(matches){
                     //console.log("2nd pass - detect return type")
-                    retType = matches[1];
+                    retType = matches[1].trim();
                     if (retType.startsWith('int_const -')) {
                         retType = 'int';
                     } else if (retType.startsWith('int_const ')) {
                         retType = 'uint';
                     } else if (retType.startsWith('contract ')) {
                         retType = retType.split("contract ", 2)[1]
+                    } else if (retType.endsWith(' pointer')) {
+                        let fragments = retType.split(' '); //address[] storage pointer
+                        fragments.pop() // pop 'pointer'
+                        console.log(fragments)
+                        if (fragments[1] == "storage"){
+                            fragments[1] = "memory";
+                        }
+                        retType = fragments.join(' ');
                     }
                 } else if(lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
                     console.error("WARNING: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
-                    
                     // lets give it a low-effort try to resolve return types. this will not always work.
                     let rexFunctionName = new RegExp(`([a-zA-Z0-9_\\.]+)\\s*\\(.*?\\)`);
                     let matchedFunctionNames = statement.rawCommand.match(rexFunctionName);
