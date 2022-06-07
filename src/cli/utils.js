@@ -5,7 +5,7 @@
  * */
 
 function convert(str){
-    switch(str){
+    switch(str.toLowerCase()){
         case '': return undefined; 
         case 'true': return true;
         case 'false': return false;
