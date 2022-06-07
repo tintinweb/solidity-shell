@@ -188,6 +188,7 @@ module.exports.builtIns = [
     "virtual",
     "pure",
     "view",
+    "global",
     "constructor",
     "fallback",
     "override",

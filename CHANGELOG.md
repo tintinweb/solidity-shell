@@ -1,6 +1,18 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.1.1
+
+- fix: return appropriate error message when trying to return an uninit storage pointer - #17
+- fix: support enums
+  ```
+🚀 Entering interactive Solidity ^0.8.13 shell (🧁:Ganache built-in). '.help' and '.exit' are your friends.
+ »  enum FreshJuiceSize{ SMALL, MEDIUM, LARGE }
+ »  uint8(FreshJuiceSize.LARGE)
+ 2
+  ```
+- update: dependencies
+
 ## v0.1.0
 
 ⚠️ pot. breaking changes: `solidity-shell` now ships with ganache. use `.chain set-provider` to switch chain providers. the `built-in` ganache provider is used by default.
