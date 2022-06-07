@@ -5,12 +5,14 @@ All notable changes will be documented in this file.
 
 - fix: return appropriate error message when trying to return an uninit storage pointer - #17
 - fix: support enums
-  ```
+
+ ```
 🚀 Entering interactive Solidity ^0.8.13 shell (🧁:Ganache built-in). '.help' and '.exit' are your friends.
  »  enum FreshJuiceSize{ SMALL, MEDIUM, LARGE }
  »  uint8(FreshJuiceSize.LARGE)
  2
-  ```
+ ```
+ 
 - fix: case insensitive bool match for `.config set <var> True|False|true|false`
 - update: dependencies
 
