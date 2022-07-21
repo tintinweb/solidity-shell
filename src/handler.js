@@ -65,7 +65,7 @@ class SolidityStatement {
         if (scope) {
             this.scope = scope;
         } else {
-            if (['function ', 'modifier ', 'mapping ', 'event ', 'error '].some(e => this.rawCommand.startsWith(e))) {
+            if (['function ', 'modifier ', 'mapping ', 'event ', 'error ', 'type '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.CONTRACT;
                 this.hasNoReturnValue = true;
             } else if (this.rawCommand.startsWith('pragma solidity ')) {
@@ -76,7 +76,7 @@ class SolidityStatement {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
                 this.rawCommand = this.fixStatement(this.rawCommand);
-            } else if (['contract ', 'interface ', 'struct ', 'enum '].some(e => this.rawCommand.startsWith(e))) {
+            } else if (['contract ', 'interface ', 'abstract', 'library', 'struct ', 'enum '].some(e => this.rawCommand.startsWith(e))) {
                 this.scope = SCOPE.SOURCE_UNIT;
                 this.hasNoReturnValue = true;
             } else {
