@@ -1,6 +1,13 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.1.2
+
+- fix: support require(), type, abstract, library
+- update: compiler list
+- update: built-in solc -> 0.8.15
+- update: dependencies
+
 ## v0.1.1
 
 - fix: return appropriate error message when trying to return an uninit storage pointer - #17
