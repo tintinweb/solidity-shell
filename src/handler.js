@@ -57,6 +57,7 @@ class SolidityStatement {
             || (this.rawCommand.startsWith('delete '))
             || (this.rawCommand.startsWith('assembly'))
             || (this.rawCommand.startsWith('revert'))
+            || (this.rawCommand.startsWith('require('))
             || (this.rawCommand.startsWith('unchecked '))
             || (this.rawCommand.startsWith('{'))
             || (rexTypeDecl.test(this.rawCommand) && !rexUnits.test(this.rawCommand))  /* looks like type decl but is not special builtin like "2 ether" */
