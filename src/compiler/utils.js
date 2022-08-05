@@ -8,10 +8,10 @@ const fs = require('fs');
 
 function readFileCallback(sourcePath, options) {
     options = options || {};
-    if(sourcePath.startsWith("https://") && options.allowHttp){
+    if (sourcePath.startsWith("https://") && options.allowHttp) {
         //allow https! imports; not yet implemented
         const res = require('sync-request')('GET', sourcePath); //@todo: this is super buggy and might freeze the app. needs async/promises.
-        return { contents: res.getBody('utf8')};
+        return { contents: res.getBody('utf8') };
     }
     else {
         const prefixes = [options.basePath ? options.basePath : ""].concat(
@@ -30,6 +30,8 @@ function readFileCallback(sourcePath, options) {
     }
     return { error: 'File not found inside the base path or any of the include paths.' }
 }
+
+
 
 module.exports = {
     readFileCallback

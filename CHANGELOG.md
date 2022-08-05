@@ -1,6 +1,12 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.2.0
+- new: new command to fetch & load interface declaration from etherscan.io #19
+
+![shell-fetch-interface](https://user-images.githubusercontent.com/2865694/183062446-c952b308-9fc7-49f9-8308-3eac09ca3b4a.gif)
+
+
 ## v0.1.2
 
 - fix: support require(), type, abstract, library

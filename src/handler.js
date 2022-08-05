@@ -5,11 +5,10 @@
  * */
 /** IMPORT */
 const path = require('path');
-const Web3 = require('web3');
 const solc = require('solc');
 const { getRemoteCompiler } = require('./compiler/remoteCompiler.js');
 const { readFileCallback } = require('./compiler/utils.js');
-const { ExternalProcessBlockchain, ExternalUrlBlockchain ,BuiltinGanacheBlockchain } = require('./blockchain.js');
+const { ExternalProcessBlockchain, ExternalUrlBlockchain, BuiltinGanacheBlockchain } = require('./blockchain.js');
 
 
 /** CONST */
@@ -153,13 +152,13 @@ class InteractiveSolidityShell {
     }
 
     initBlockchain() {
-        if(this.blockchain){
+        if (this.blockchain) {
             this.blockchain.stopService();
         }
 
-        if(!this.settings.blockchainProvider || this.settings.blockchainProvider === "internal"){
+        if (!this.settings.blockchainProvider || this.settings.blockchainProvider === "internal") {
             this.blockchain = new BuiltinGanacheBlockchain(this);
-        } else if(this.settings.blockchainProvider.startsWith("https://") || this.settings.blockchainProvider.startsWith("http://")) {
+        } else if (this.settings.blockchainProvider.startsWith("https://") || this.settings.blockchainProvider.startsWith("http://")) {
             this.blockchain = new ExternalUrlBlockchain(this, this.settings.blockchainProvider);
         } else if (this.settings.blockchainProvider.length > 0) {
             this.settings.ganacheCmd = this.settings.blockchainProvider;
@@ -306,12 +305,12 @@ contract ${this.settings.templateContractName} {
                 const callbacks = {
                     'import': (sourcePath) => readFileCallback(
                         sourcePath, {
-                            basePath: process.cwd(), 
-                            includePath: [
-                                path.join(process.cwd(), "node_modules")
-                            ],
-                            allowHttp: this.settings.resolveHttpImports
-                        }
+                        basePath: process.cwd(),
+                        includePath: [
+                            path.join(process.cwd(), "node_modules")
+                        ],
+                        allowHttp: this.settings.resolveHttpImports
+                    }
                     )
                 };
 
@@ -368,7 +367,7 @@ contract ${this.settings.templateContractName} {
                 }
                 let retType = ""
                 let matches = lastTypeError.message.match(rexTypeErrorReturnArgumentX);
-                if(matches){
+                if (matches) {
                     //console.log("2nd pass - detect return type")
                     retType = matches[1].trim();
                     if (retType.startsWith('int_const -')) {
@@ -381,28 +380,28 @@ contract ${this.settings.templateContractName} {
                         let fragments = retType.split(' '); //address[] storage pointer
                         fragments.pop() // pop 'pointer'
                         console.log(fragments)
-                        if (fragments[1] == "storage"){
+                        if (fragments[1] == "storage") {
                             fragments[1] = "memory";
                         }
                         retType = fragments.join(' ');
                     }
-                } else if(lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
+                } else if (lastTypeError.message.includes(TYPE_ERROR_DETECT_RETURNS)) {
                     console.error("WARNING: cannot auto-resolve type for complex function yet ://\n     If this is a function call, try unpacking the function return values into local variables explicitly!\n     e.g. `(uint a, address b, address c) = myContract.doSomething(1,2,3);`")
                     // lets give it a low-effort try to resolve return types. this will not always work.
                     let rexFunctionName = new RegExp(`([a-zA-Z0-9_\\.]+)\\s*\\(.*?\\)`);
                     let matchedFunctionNames = statement.rawCommand.match(rexFunctionName);
-                    if(matchedFunctionNames.length >= 1 ){
+                    if (matchedFunctionNames.length >= 1) {
                         let funcNameParts = matchedFunctionNames[1].split(".");
-                        let funcName = funcNameParts[funcNameParts.length-1]; //get last
+                        let funcName = funcNameParts[funcNameParts.length - 1]; //get last
                         let rexReturns = new RegExp(`function ${funcName}\\s*\\(.* returns\\s*\\(([^\\)]+)\\)`)
-                        
+
                         let returnDecl = sourceCode.match(rexReturns);
-                        if(returnDecl.length >1){
+                        if (returnDecl.length > 1) {
                             retType = returnDecl[1];
                         }
                     }
 
-                    if(retType === ""){
+                    if (retType === "") {
                         this.revert();
                         return reject(errors);
                     }
@@ -411,7 +410,7 @@ contract ${this.settings.templateContractName} {
                     this.revert();
                     return reject(errors);
                 }
-                
+
                 this.session.statements[this.session.statements.length - 1].returnType = retType;
 
                 //try again!

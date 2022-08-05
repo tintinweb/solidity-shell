@@ -85,6 +85,10 @@ BNB
     .help                                ... this help :)
     .exit                                ... exit the shell
 
+ Source:
+    .fetch 
+            interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io
+
  Blockchain:
     .chain                         
             restart                      ... restart the blockchain service
