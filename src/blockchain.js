@@ -56,14 +56,14 @@ class AbsBlockchainBase {
             })
         });
     }
-    
+
     methodCall(cmd, args) {
         return new Promise((resolve, reject) => {
             let func = this.web3.eth[cmd];
-            if(func === undefined) {
+            if (func === undefined) {
                 return reject("  🧨 Unsupported Method");
             }
-            if(typeof func === "function"){
+            if (typeof func === "function") {
                 func((err, result) => {
                     if (err) return reject(new Error(err));
                     return resolve(result);
@@ -74,21 +74,21 @@ class AbsBlockchainBase {
         });
     }
 
-    rpcCall(method, params){
+    rpcCall(method, params) {
         return new Promise((resolve, reject) => {
             let payload = {
-                "jsonrpc":"2.0",
-                "method":method,
-                "params":params === undefined ? [] : params,
-                "id":1
+                "jsonrpc": "2.0",
+                "method": method,
+                "params": params === undefined ? [] : params,
+                "id": 1
             }
             this.provider.send(payload, (error, result) => {
-                if(error)
+                if (error)
                     return reject(error);
                 return resolve(result);
             });
         });
-        
+
     }
 
     async deploy(contracts, callback) {
@@ -147,7 +147,7 @@ class BuiltinGanacheBlockchain extends AbsBlockchainBase {
         const defaultOptions = {
             logging: { quiet: true },
         };
-        this.options = {...defaultOptions, ...shell.settings.ganacheOptions};
+        this.options = { ...defaultOptions, ...shell.settings.ganacheOptions };
     }
 
     connect() {
@@ -165,14 +165,14 @@ class BuiltinGanacheBlockchain extends AbsBlockchainBase {
             this.web3 = new Web3(this.provider);
         });
 
-        
+
     }
 
     startService() {
         if (this.provider !== undefined) {
             return this.provider;
         }
-        
+
         this.provider = ganache.provider(this.options);
     }
     stopService() {
@@ -222,9 +222,9 @@ class ExternalProcessBlockchain extends AbsBlockchainBase {
             return this.proc;
         }
         this.log("ℹ️  ganache-mgr: starting temp. ganache instance ...\n »");
-        
+
         this.proc = require('child_process').spawn(this.shell.settings.ganacheCmd, this.shell.settings.ganacheArgs);
-        this.proc.on('error', function(err) {
+        this.proc.on('error', function (err) {
             console.error(`
  🧨 Unable to launch blockchain serivce: ➜ ℹ️  ${err}
 
@@ -236,7 +236,7 @@ class ExternalProcessBlockchain extends AbsBlockchainBase {
 
     stopService() {
         this.log("💀  ganache-mgr: stopping temp. ganache instance");
-        if(this.proc) {
+        if (this.proc) {
             this.proc.kill('SIGINT');
             this.proc = undefined;
         }
