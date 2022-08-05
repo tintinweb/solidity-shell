@@ -97,15 +97,8 @@ vorpal.on('client_prompt_submit', (cmd) => {
     }
 });
 
-vorpal
-    .mode('repl', 'Enters Solidity Shell Mode')
-    .delimiter(c.bold('» '))
-    .init(function (args, cb) {
-        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
-        return cb();
-    })
-    .action(function (input, cb) {
-        let command = multilineInput(input);
+function handleRepl(input, cb){
+    let command = multilineInput(input);
 
         /* substitute placeholder: $_ */
         command = command.replace(REX_PLACEHOLDER, ' (' + LAST_KNOWN_RESULT + ') ');
@@ -126,6 +119,10 @@ vorpal
  ${c.bold('General:')}
     .help                                ... this help :)
     .exit                                ... exit the shell
+
+ ${c.bold('Source:')}
+    .fetch 
+            interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io
 
  ${c.bold('Blockchain:')}
     .chain                         
@@ -242,6 +239,34 @@ cheers 🙌
                         return cb();
                     }
                     return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
+                case '.fetch':
+                    if(commandParts.length < 4){
+                        cb("Invalid params: .fetch interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io")
+                        break;
+                    }
+                    switch(commandParts[1]){
+                        case 'interface':
+                            const {getRemoteInterfaceFromEtherscan} = require('../src/compiler/remoteCompiler');
+
+                            getRemoteInterfaceFromEtherscan(commandParts[2], commandParts[3], commandParts.length >=4 ? commandParts[4] : undefined ).then(interfaceSource => {
+                                cb(interfaceSource);
+                                return handleRepl(interfaceSource, cb); // recursively call
+                            }).catch(e => {
+                                // try once more?
+                                getRemoteInterfaceFromEtherscan(commandParts[2], commandParts[3], commandParts.length >=4 ? commandParts[4] : undefined ).then(interfaceSource => {
+                                    cb(interfaceSource);
+                                    return handleRepl(interfaceSource, cb); // recursively call
+                                }).catch(e => {
+                                    return cb(`Error trying to fetch remote interface: ${e}`)
+                                })
+                            })
+                            break;
+                        default:
+                            cb("Invalid params: .fetch interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io")
+                            break;
+                    }
+                        
+                    break;
                 default:
                     console.error(`Unknown Command: '${command}'. Type '${c.bold('.help')}' for a list of commands.`);
             }
@@ -267,7 +292,16 @@ cheers 🙌
             console.error(errors)
             cb()
         })
-    });
+}
+
+vorpal
+    .mode('repl', 'Enters Solidity Shell Mode')
+    .delimiter(c.bold('» '))
+    .init(function (args, cb) {
+        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
+        return cb();
+    })
+    .action(handleRepl);
 
 
 
@@ -298,6 +332,9 @@ vorpal
     .command(".proc")
 vorpal 
     .command(".dump")
+vorpal
+    .command(".fetch")
+    .autocomplete(["interface"])
 vorpal 
     .command(".echo <msg>")
 vorpal 

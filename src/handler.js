@@ -5,7 +5,6 @@
  * */
 /** IMPORT */
 const path = require('path');
-const Web3 = require('web3');
 const solc = require('solc');
 const { getRemoteCompiler } = require('./compiler/remoteCompiler.js');
 const { readFileCallback } = require('./compiler/utils.js');
