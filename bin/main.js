@@ -248,14 +248,24 @@ cheers 🙌
                     case 'interface':
                         const { getRemoteInterfaceFromEtherscan } = require('../src/compiler/remoteCompiler');
 
-                        getRemoteInterfaceFromEtherscan(commandParts[2], commandParts[3], commandParts.length >= 4 ? commandParts[4] : undefined).then(interfaceSource => {
+                        getRemoteInterfaceFromEtherscan(
+                            commandParts[2],
+                            commandParts[3],
+                            commandParts.length >= 4 ? commandParts[4] : undefined,
+                            shell.settings.installedSolidityVersion
+                        ).then(interfaceSource => {
                             console.log(interfaceSource);
                             return cb(handleRepl(interfaceSource, cb)); // recursively call
                         }).catch(e => {
                             console.error(e);
                             console.log("let's try once more 🤷‍♂️")
                             // try once more?
-                            getRemoteInterfaceFromEtherscan(commandParts[2], commandParts[3], commandParts.length >= 4 ? commandParts[4] : undefined).then(interfaceSource => {
+                            getRemoteInterfaceFromEtherscan(
+                                commandParts[2],
+                                commandParts[3],
+                                commandParts.length >= 4 ? commandParts[4] : undefined,
+                                shell.settings.installedSolidityVersion
+                            ).then(interfaceSource => {
                                 console.log(interfaceSource);
                                 return cb(handleRepl(interfaceSource, cb)); // recursively call
                             }).catch(e => {

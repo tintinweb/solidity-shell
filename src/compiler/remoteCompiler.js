@@ -57,7 +57,7 @@ function getRemoteCompiler(solidityVersion) {
 }
 
 //.import interface 0x40cfee8d71d67108db46f772b7e2cd55813bf2fb test2
-function getRemoteInterfaceFromEtherscan(address, name, chain) {
+function getRemoteInterfaceFromEtherscan(address, name, chain, solidityVersion) {
     return new Promise((resolve, reject) => {
 
         let provider = `https://api${(!chain || chain == "mainnet") ? "" : `-${chain}`}.etherscan.io`
@@ -73,10 +73,12 @@ function getRemoteInterfaceFromEtherscan(address, name, chain) {
                 let abi = JSON.parse(data.result);
                 let src = generateSolidity({
                     name: name,
-                    solidityVersion: "0.8.9",
+                    solidityVersion: solidityVersion,
                     abi,
-                    outputSource: false
+                    outputSource: false,
+                    outputAttribution: false,
                 });
+                src = src.substring(src.indexOf("\n\n") + 2);  // strip license/pragma
                 return resolve(src)
             }
         })
