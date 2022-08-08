@@ -233,3 +233,4 @@ ____
 ## Acknowledgements
 
 * Inspired by the great but unfortunately unmaintained [solidity-repl](https://github.com/raineorshine/solidity-repl).
+* Fetch interfaces from Etherscan is powered by [abi-to-sol](https://github.com/gnidan/abi-to-sol)
