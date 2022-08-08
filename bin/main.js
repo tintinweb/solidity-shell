@@ -239,6 +239,26 @@ cheers 🙌
                     return cb();
                 }
                 return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
+            case '.inspect':
+                let deployed = shell.blockchain.getDeployed();
+                switch (commandParts[1]) {
+                    case 'storage': 
+                        deployed && shell.blockchain.web3.eth.getStorageAt(deployed.instance.options.address, commandParts.length > 2 ? commandParts[2] : "0x0").then(console.log);
+                        break;
+                    case 'bytecode':
+                        deployed && cb(c.yellow(deployed.bytecode));
+                        break;
+                    case 'deployed':
+                        cb(deployed);
+                        break;
+                    case 'storageLayout':
+                        deployed && cb(deployed.storageLayout);
+                        break;
+                    case 'opcodes':
+                        deployed && cb(deployed.opcodes);
+                        break;
+                }
+                break;
             case '.fetch':
                 if (commandParts.length < 4) {
                     cb("Invalid params: .fetch interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io")

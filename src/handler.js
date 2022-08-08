@@ -300,7 +300,7 @@ contract ${this.settings.templateContractName} {
                         },
                     },
                 }
-                input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode']
+                input.settings.outputSelection['*']['*'] = ['abi', 'evm.bytecode', 'storageLayout']
 
                 const callbacks = {
                     'import': (sourcePath) => readFileCallback(
