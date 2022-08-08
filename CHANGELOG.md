@@ -1,6 +1,11 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.2.1
+- fix: feed current compiler version into abi-to-sol; strip attribution and other code #20 #21
+- update: compiler list
+- update: built-in solc -> 0.8.16
+
 ## v0.2.0
 - new: new command to fetch & load interface declaration from etherscan.io #19
 

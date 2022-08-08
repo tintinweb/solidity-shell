@@ -188,9 +188,49 @@ contract MainContract {
     }
 }
 ```
+
+### Fetch Interface Declaration from Etherscan
+
+![shell-fetch-interface](https://user-images.githubusercontent.com/2865694/183062446-c952b308-9fc7-49f9-8308-3eac09ca3b4a.gif)
+
+
+`.fetch interface <address> <interfaceName> [optional: chain=mainnet]`
+
+```
+⇒  solidity-shell --fork https://mainnet.infura.io/v3/<yourApiKey>                                                                                                
+ 
+🚀 Entering interactive Solidity ^0.8.16 shell (🧁:Ganache built-in). '.help' and '.exit' are your friends.
+ »  
+ »  .fetch interface 0x40cfEe8D71D67108Db46F772B7e2CD55813Bf2FB Test
+ »  interface Test {
+    
+    ... omitted ...
+
+    function symbol() external view returns (string memory);
+
+    function tokenURI(uint256 tokenId) external view returns (string memory);
+
+    function totalSupply() external view returns (uint256);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    function transferOwnership(address newOwner) external;
+
+    function withdraw() external;
+}
+
+ »  Test t = Test(0x40cfEe8D71D67108Db46F772B7e2CD55813Bf2FB)
+ »  t.symbol()
+MGX
+```
 ____
 
 
 ## Acknowledgements
 
 * Inspired by the great but unfortunately unmaintained [solidity-repl](https://github.com/raineorshine/solidity-repl).
+* Fetch interfaces from Etherscan is powered by [abi-to-sol](https://github.com/gnidan/abi-to-sol).
