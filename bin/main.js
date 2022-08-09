@@ -123,6 +123,13 @@ function handleRepl(input, cb) {
  ${c.bold('Source:')}
     .fetch 
             interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io
+    .inspect
+            bytecode                     ... show bytecode of underlying contract
+            opcodes                      ... show disassembled opcodes of underlying contract
+            storageLayout                ... show variable to storage slot mapping for underlying contract
+            storage                      ... show raw storage at slot of underlying deployed contract
+            deployed                     ... debug: show internal contract object
+
 
  ${c.bold('Blockchain:')}
     .chain                         
@@ -242,8 +249,61 @@ cheers 🙌
             case '.inspect':
                 let deployed = shell.blockchain.getDeployed();
                 switch (commandParts[1]) {
-                    case 'storage': 
-                        deployed && shell.blockchain.web3.eth.getStorageAt(deployed.instance.options.address, commandParts.length > 2 ? commandParts[2] : "0x0").then(console.log);
+                    case 'storage':
+
+                        function getStorageAt(target, start, num, atBlock) {
+
+                            atBlock = atBlock || "latest";
+                            start = start || 0;
+                            num = num || 1;
+                            let slots = [...Array(num).keys()].map((idx) => (start + idx))
+
+                            return slots.map(slot => shell.blockchain.web3.eth.getStorageAt(target, slot));
+                        }
+                        let start = commandParts.length > 2 ? parseInt(commandParts[2]) : 0;
+                        let num = commandParts.length > 3 ? parseInt(commandParts[3]) : 10;
+
+                        if (isNaN(start) || isNaN(num)) {
+                            console.error("start and num must be numbers!")
+                            break;
+                        }
+
+                        var target;
+                        if (commandParts.length > 4) {
+                            target = commandParts[4].trim().toLowerCase();
+                        } else if (deployed) {
+                            target = deployed.instance.options.address;
+                        } else {
+                            console.error("not yet ready. execute repl command first.");
+                            break;
+                        }
+
+                        Promise.all(getStorageAt(target, start, num))
+                            .then(r => {
+
+                                let head = `
+     📚 Contract:      ${target} @ latest block
+
+     slot              00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
+  --------------------------------------------------------------------------------------------------------------------
+`;
+
+                                let lines = r.map((v, i) => {
+                                    let datawideBytes = v.replace("0x", "").padStart(256 / 8 * 2, '0').match(/.{2}/g);
+                                    let strline = datawideBytes.map(b => {
+                                        let bint = parseInt(b, 16);
+                                        if (bint >= 32 && bint <= 126) {
+                                            return String.fromCharCode(bint);
+                                        } else {
+                                            return '.';
+                                        }
+                                    }).join("");
+                                    return `  0x${(start + i).toString(16).padStart(6, '0')} (${(start + i).toString().padStart(4, ' ')})      ${datawideBytes.map(b => b == "00" ? b : c.bold(c.bgYellowBright(b))).join(" ")}    ${strline}`;
+                                }).join('\n');
+
+                                console.log(head + lines);
+                            });
+
                         break;
                     case 'bytecode':
                         deployed && cb(c.yellow(deployed.bytecode));
@@ -367,6 +427,9 @@ vorpal
 vorpal
     .command(".fetch")
     .autocomplete(["interface"])
+vorpal
+    .command(".inspect")
+    .autocomplete(["bytecode", "opcodes", "storage", "storageLayout", "deployed"])
 vorpal
     .command(".echo <msg>")
 vorpal
