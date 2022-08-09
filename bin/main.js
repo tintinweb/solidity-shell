@@ -127,7 +127,7 @@ function handleRepl(input, cb) {
             bytecode                     ... show bytecode of underlying contract
             opcodes                      ... show disassembled opcodes of underlying contract
             storageLayout                ... show variable to storage slot mapping for underlying contract
-            storage                      ... show raw storage at slot of underlying deployed contract
+            storage <slot> <num> [<address>] ... show raw storage at slot of underlying deployed contract 
             deployed                     ... debug: show internal contract object
 
 
