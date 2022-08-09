@@ -271,7 +271,6 @@ MGX
  
 🚀 Entering interactive Solidity ^0.8.16 shell (🧁:Ganache built-in, ⇉ fork-mode). '.help' and '.exit' are your friends.
  »  1+1
-.inspect bytecode
 2
  »  .inspect bytecode
 6080604052348015610010576000 ... 03a7bab64736f6c63430008100033
