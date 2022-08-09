@@ -284,7 +284,7 @@ cheers 🙌
                                 let head = `
      📚 Contract:      ${target} @ latest block
 
-     slot              00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
+     slot              1f 1e 1d 1c 1b 1a 19 18 17 16 15 14 13 12 11 10 0f 0e 0d 0c 0b 0a 09 08 07 06 05 04 03 02 01 00
   --------------------------------------------------------------------------------------------------------------------
 `;
 
@@ -390,7 +390,7 @@ vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
     .delimiter(c.bold('» '))
     .init(function (args, cb) {
-        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
+        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}${shell.settings.ganacheOptions && shell.settings.ganacheOptions.fork ? c.bold(', ⇉ fork-mode'):''}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
         return cb();
     })
     .action(handleRepl);
