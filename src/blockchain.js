@@ -91,8 +91,7 @@ class AbsBlockchainBase {
     }
 
     getDeployed(){
-        let templateContractName = this.shell.settings.templateContractName;
-        return this.deployed[templateContractName];
+        return this.deployed[this.shell.settings.templateContractName];
     }
 
     async deploy(contracts, callback) {
