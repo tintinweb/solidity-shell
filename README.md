@@ -85,9 +85,17 @@ BNB
     .help                                ... this help :)
     .exit                                ... exit the shell
 
+
  Source:
     .fetch 
             interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io
+    .inspect
+            bytecode                     ... show bytecode of underlying contract
+            opcodes                      ... show disassembled opcodes of underlying contract
+            storageLayout                ... show variable to storage slot mapping for underlying contract
+            storage <slot> <num> [<address>] ... show raw storage at slot of underlying deployed contract 
+            deployed                     ... debug: show internal contract object
+
 
  Blockchain:
     .chain                         
@@ -227,6 +235,61 @@ contract MainContract {
  »  t.symbol()
 MGX
 ```
+
+### Inspect Contract Storage on Ganache Fork
+
+1. Run solidity shell in **fork-mode**.
+2. Display contract storage at latest block.
+
+
+```
+⇒  solidity-shell --fork https://mainnet.infura.io/v3/<yourApiKey>    
+
+🚀 Entering interactive Solidity ^0.8.16 shell (🧁:Ganache built-in, ⇉ fork-mode). '.help' and '.exit' are your friends.
+ »  .inspect storage 0 10 0x40cfEe8D71D67108Db46F772B7e2CD55813Bf2FB
+ »  
+     📚 Contract:      0x40cfee8d71d67108db46f772b7e2cd55813bf2fb @ latest block
+
+     slot              1f 1e 1d 1c 1b 1a 19 18 17 16 15 14 13 12 11 10 0f 0e 0d 0c 0b 0a 09 08 07 06 05 04 03 02 01 00
+  --------------------------------------------------------------------------------------------------------------------
+  0x000000 (   0)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1d c7    ................................
+  0x000001 (   1)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000002 (   2)      54 68 65 20 4d 61 67 69 78 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 12    The Magix.......................
+  0x000003 (   3)      4d 47 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 06    MGX.............................
+  0x000004 (   4)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000005 (   5)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000006 (   6)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000007 (   7)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000008 (   8)      00 00 00 00 00 00 00 00 00 00 00 00 d7 4e 84 57 2f 5f 7b 5d 41 47 4e be d9 b3 02 0a 2e 52 6f c6    .............N.W/_{]AGN......Ro.
+  0x000009 (   9)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 27 0f    ..............................'.
+```
+
+### Inspect Generated Contract
+
+```
+  solidity-shell       
+ 
+🚀 Entering interactive Solidity ^0.8.16 shell (🧁:Ganache built-in, ⇉ fork-mode). '.help' and '.exit' are your friends.
+ »  1+1
+2
+ »  .inspect bytecode
+6080604052348015610010576000 ... 03a7bab64736f6c63430008100033
+ »  .inspect opcodes
+PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE ... SLOAD 0xDA POP GASPRICE PUSH28 0xAB64736F6C6343000810003300000000000000000000000000000000 
+ »  .inspect storageLayout
+{ storage: [], types: null }
+ »  .inspect storage 0 4
+ »  
+     📚 Contract:      0xCa1061046396daF801dEB0D848FcfeA055fAfBFC @ latest block
+
+     slot              1f 1e 1d 1c 1b 1a 19 18 17 16 15 14 13 12 11 10 0f 0e 0d 0c 0b 0a 09 08 07 06 05 04 03 02 01 00
+  --------------------------------------------------------------------------------------------------------------------
+  0x000000 (   0)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000001 (   1)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000002 (   2)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+  0x000003 (   3)      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................................
+```
+
 ____
 
 

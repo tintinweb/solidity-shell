@@ -123,6 +123,13 @@ function handleRepl(input, cb) {
  ${c.bold('Source:')}
     .fetch 
             interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io
+    .inspect
+            bytecode                     ... show bytecode of underlying contract
+            opcodes                      ... show disassembled opcodes of underlying contract
+            storageLayout                ... show variable to storage slot mapping for underlying contract
+            storage <slot> <num> [<address>] ... show raw storage at slot of underlying deployed contract 
+            deployed                     ... debug: show internal contract object
+
 
  ${c.bold('Blockchain:')}
     .chain                         
@@ -239,6 +246,79 @@ cheers 🙌
                     return cb();
                 }
                 return cb(`${c.bold(c.yellow(shell.blockchain.proc.pid))} - ${shell.blockchain.proc.spawnargs.join(', ')}`)
+            case '.inspect':
+                let deployed = shell.blockchain.getDeployed();
+                switch (commandParts[1]) {
+                    case 'storage':
+
+                        function getStorageAt(target, start, num, atBlock) {
+
+                            atBlock = atBlock || "latest";
+                            start = start || 0;
+                            num = num || 1;
+                            let slots = [...Array(num).keys()].map((idx) => (start + idx))
+
+                            return slots.map(slot => shell.blockchain.web3.eth.getStorageAt(target, slot));
+                        }
+                        let start = commandParts.length > 2 ? parseInt(commandParts[2]) : 0;
+                        let num = commandParts.length > 3 ? parseInt(commandParts[3]) : 10;
+
+                        if (isNaN(start) || isNaN(num)) {
+                            console.error("start and num must be numbers!")
+                            break;
+                        }
+
+                        var target;
+                        if (commandParts.length > 4) {
+                            target = commandParts[4].trim().toLowerCase();
+                        } else if (deployed) {
+                            target = deployed.instance.options.address;
+                        } else {
+                            console.error("not yet ready. execute repl command first.");
+                            break;
+                        }
+
+                        Promise.all(getStorageAt(target, start, num))
+                            .then(r => {
+
+                                let head = `
+     📚 Contract:      ${target} @ latest block
+
+     slot              1f 1e 1d 1c 1b 1a 19 18 17 16 15 14 13 12 11 10 0f 0e 0d 0c 0b 0a 09 08 07 06 05 04 03 02 01 00
+  --------------------------------------------------------------------------------------------------------------------
+`;
+
+                                let lines = r.map((v, i) => {
+                                    let datawideBytes = v.replace("0x", "").padStart(256 / 8 * 2, '0').match(/.{2}/g);
+                                    let strline = datawideBytes.map(b => {
+                                        let bint = parseInt(b, 16);
+                                        if (bint >= 32 && bint <= 126) {
+                                            return String.fromCharCode(bint);
+                                        } else {
+                                            return '.';
+                                        }
+                                    }).join("");
+                                    return `  0x${(start + i).toString(16).padStart(6, '0')} (${(start + i).toString().padStart(4, ' ')})      ${datawideBytes.map(b => b == "00" ? b : c.bold(c.bgYellowBright(b))).join(" ")}    ${strline}`;
+                                }).join('\n');
+
+                                console.log(head + lines);
+                            });
+
+                        break;
+                    case 'bytecode':
+                        deployed && cb(c.yellow(deployed.bytecode));
+                        break;
+                    case 'deployed':
+                        cb(deployed);
+                        break;
+                    case 'storageLayout':
+                        deployed && cb(deployed.storageLayout);
+                        break;
+                    case 'opcodes':
+                        deployed && cb(deployed.opcodes);
+                        break;
+                }
+                break;
             case '.fetch':
                 if (commandParts.length < 4) {
                     cb("Invalid params: .fetch interface <address> <name> [chain=mainnet] ... fetch and load an interface declaration from an ABI spec on etherscan.io")
@@ -310,7 +390,7 @@ vorpal
     .mode('repl', 'Enters Solidity Shell Mode')
     .delimiter(c.bold('» '))
     .init(function (args, cb) {
-        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
+        this.log(`🚀 Entering interactive Solidity ${c.bold(shell.settings.installedSolidityVersion)} shell (🧁:${c.bold(shell.blockchain.name)}${shell.settings.ganacheOptions && shell.settings.ganacheOptions.fork ? c.bold(', ⇉ fork-mode'):''}). '${c.bold('.help')}' and '${c.bold('.exit')}' are your friends.`);
         return cb();
     })
     .action(handleRepl);
@@ -347,6 +427,9 @@ vorpal
 vorpal
     .command(".fetch")
     .autocomplete(["interface"])
+vorpal
+    .command(".inspect")
+    .autocomplete(["bytecode", "opcodes", "storage", "storageLayout", "deployed"])
 vorpal
     .command(".echo <msg>")
 vorpal

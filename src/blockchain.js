@@ -88,7 +88,10 @@ class AbsBlockchainBase {
                 return resolve(result);
             });
         });
+    }
 
+    getDeployed(){
+        return this.deployed[this.shell.settings.templateContractName];
     }
 
     async deploy(contracts, callback) {
@@ -100,10 +103,12 @@ class AbsBlockchainBase {
 
             let thisContract = {
                 bytecode: o.evm.bytecode.object,
+                opcodes: o.evm.bytecode.opcodes,
                 abi: o.abi,
                 proxy: new this.web3.eth.Contract(o.abi, null),
                 instance: undefined,
                 main: o.main,
+                storageLayout: o.storageLayout,
                 accounts: undefined
             }
 
@@ -112,10 +117,10 @@ class AbsBlockchainBase {
                 .then(accounts => {
                     thisContract.accounts = accounts;
                     let instance = thisContract.proxy.deploy({ data: thisContract.bytecode }).send({ from: accounts[0], gas: this.shell.settings.deployGas })
-                    thisContract.instance = instance;
                     return instance;
                 })
                 .then(contract => {
+                    thisContract.instance = contract;
                     if (thisContract.main) {
                         contract.methods[thisContract.main]().call({ from: thisContract.accounts[0], gas: this.shell.settings.callGas }, callback);
                     }
