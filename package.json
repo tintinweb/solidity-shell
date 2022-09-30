@@ -1,6 +1,6 @@
 {
   "name": "solidity-shell",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "An interactive Solidity shell with lightweight session recording and remote compiler support",
   "main": "src/index.js",
   "bin": {
@@ -26,12 +26,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "abi-to-sol": "^0.6.5",
+    "abi-to-sol": "^0.6.6",
     "ganache": "^7.0.4",
     "minimist": "^1.2.5",
     "readline-sync": "^1.4.10",
     "request": "^2.88.2",
-    "solc": "^0.8.16",
+    "solc": "^0.8.17",
     "sync-request": "^6.1.0",
     "vorpal": "^1.12.0",
     "web3": "^1.5.2"

@@ -76,7 +76,6 @@ function getRemoteInterfaceFromEtherscan(address, name, chain, solidityVersion) 
                     solidityVersion: solidityVersion,
                     abi,
                     outputSource: false,
-                    outputAttribution: false,
                 });
                 src = src.substring(src.indexOf("\n\n") + 2);  // strip license/pragma
                 return resolve(src)
