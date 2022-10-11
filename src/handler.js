@@ -132,7 +132,8 @@ class InteractiveSolidityShell {
             resolveHttpImports: true,
             enableAutoComplete: true,
             callGas: 3e6,
-            deployGas: 3e6
+            deployGas: 3e6,
+            etherscanApiKey: 'YourApiKeyToken'
         }
 
         this.settings = {
