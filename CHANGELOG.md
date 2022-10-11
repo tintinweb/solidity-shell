@@ -1,6 +1,9 @@
 # Change Log
 All notable changes will be documented in this file.
 
+## v0.2.4
+- new: configure an etherscan.io apiKey `.config set etherscanApiKey <newApiKey>` (default: `YourApiKeyToken` demo key) #25 #24
+
 ## v0.2.3
 - update: dependencies
 
