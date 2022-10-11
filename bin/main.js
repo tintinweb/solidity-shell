@@ -332,7 +332,8 @@ cheers 🙌
                             commandParts[2],
                             commandParts[3],
                             commandParts.length >= 4 ? commandParts[4] : undefined,
-                            shell.settings.installedSolidityVersion
+                            shell.settings.installedSolidityVersion,
+                            shell.settings.etherscanApiKey
                         ).then(interfaceSource => {
                             console.log(interfaceSource);
                             return cb(handleRepl(interfaceSource, cb)); // recursively call
@@ -344,7 +345,8 @@ cheers 🙌
                                 commandParts[2],
                                 commandParts[3],
                                 commandParts.length >= 4 ? commandParts[4] : undefined,
-                                shell.settings.installedSolidityVersion
+                                shell.settings.installedSolidityVersion,
+                                shell.settings.etherscanApiKey
                             ).then(interfaceSource => {
                                 console.log(interfaceSource);
                                 return cb(handleRepl(interfaceSource, cb)); // recursively call

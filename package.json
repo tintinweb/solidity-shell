@@ -1,6 +1,6 @@
 {
   "name": "solidity-shell",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "An interactive Solidity shell with lightweight session recording and remote compiler support",
   "main": "src/index.js",
   "bin": {
