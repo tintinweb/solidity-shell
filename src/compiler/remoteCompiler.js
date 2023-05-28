@@ -59,7 +59,7 @@ function getRemoteCompiler(solidityVersion) {
 //.import interface 0x40cfee8d71d67108db46f772b7e2cd55813bf2fb test2
 function getRemoteInterfaceFromEtherscan(address, name, chain, solidityVersion, apikey) {
     return new Promise((resolve, reject) => {
-        
+
         let provider = `https://api${(!chain || chain == "mainnet") ? "" : `-${chain}`}.etherscan.io`
         let url = `${provider}/api?module=contract&action=getabi&address=${address}&apikey=${apikey || 'YourApiKeyToken'}`;
         request.get(url, (err, res, body) => {
@@ -75,9 +75,10 @@ function getRemoteInterfaceFromEtherscan(address, name, chain, solidityVersion, 
                     name: name,
                     solidityVersion: solidityVersion,
                     abi,
+                    mode: "embedded",
+                    outputAttribution: false,
                     outputSource: false,
                 });
-                src = src.substring(src.indexOf("\n\n") + 2);  // strip license/pragma
                 return resolve(src)
             }
         })
